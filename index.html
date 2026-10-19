@@ -22,16 +22,44 @@
 </head>
 <body>
 <div class="container my-4">
-    <!-- ENCABEZADO CON LOGOTIPO Y NOMBRE -->
-    <div class="text-center mb-4 p-3 bg-white shadow-sm rounded border">
+    <!-- ENCABEZADO CON LOGOTIPO, NOMBRE Y VERSIÓN V.1 -->
+    <div class="text-center mb-4 p-3 bg-white shadow-sm rounded border position-relative">
+        <span class="badge bg-secondary position-absolute top-0 end-0 m-3">Versión V.1</span>
         <img src="logo biomax.png" alt="Logo Biomax" class="station-logo mb-2">
         <h2 class="fw-bold text-primary mb-1">Estación de Servicio Biomax Orquideas</h2>
         <p class="text-muted mb-0">Relación de Caja, Arqueos de Isleros y Consolidado</p>
     </div>
 
-    <!-- BOTÓN PARA IR AL MÓDULO DE CONSULTAS -->
-    <div class="mb-4 text-center no-print">
-        <a href="consultas.html" class="btn btn-outline-dark">🔍 Ir al Módulo de Filtros y Consultas →</a>
+    <!-- BOTONES DE NAVEGACIÓN Y CARGA ANTERIOR -->
+    <div class="row mb-4 no-print align-items-center">
+        <div class="col-md-6 text-center mb-2 mb-md-0">
+            <a href="consultas.html" class="btn btn-outline-dark w-100">🔍 Ir al Módulo de Filtros y Consultas →</a>
+        </div>
+        <div class="col-md-6 text-center">
+            <button class="btn btn-outline-primary w-100" type="button" data-bs-toggle="collapse" data-bs-target="#collapseCargar">
+                📂 Cargar Registro Anterior para Editar / Consultar
+            </button>
+        </div>
+    </div>
+
+    <!-- PANEL DESPLEGABLE PARA CARGAR REGISTRO ANTERIOR -->
+    <div class="collapse mb-4 no-print" id="collapseCargar">
+        <div class="card card-body bg-light border">
+            <h6 class="text-secondary border-bottom pb-2">🔄 Buscar Arqueo Pasado por Fecha de Reporte y Nombre</h6>
+            <div class="row g-3 align-items-end">
+                <div class="col-md-4">
+                    <label class="form-label">Fecha del Reporte a Buscar</label>
+                    <input type="date" class="form-control" id="buscarFecha">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Nombre del Responsable</label>
+                    <input type="text" class="form-control" id="buscarNombre" placeholder="Ej. DANILO">
+                </div>
+                <div class="col-md-4">
+                    <button type="button" class="btn btn-primary w-100" onclick="cargarDatoAnterior()">📥 Cargar al Formulario</button>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- DATOS GENERALES -->
@@ -157,6 +185,7 @@
     </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
     const denominaciones = [
         {val: 100000, tipo: 'billete', label: '100.000 (Billete)', key: 'b100000'},
@@ -199,9 +228,9 @@
         document.getElementById('listaDatafono').innerHTML = '';
         document.getElementById('listaAditivos').innerHTML = '';
 
-        agregarFila('listaCreditos', 'credito-val');
-        agregarFila('listaDatafono', 'datafono-val');
-        agregarFila('listaAditivos', 'aditivo-val');
+        agregarFila('listaCreditos', 'credito-val', 0);
+        agregarFila('listaDatafono', 'datafono-val', 0);
+        agregarFila('listaAditivos', 'aditivo-val', 0);
     }
 
     function cambiarTipoReporte() {
@@ -236,17 +265,86 @@
         calcularArqueo();
     }
 
-    function agregarFila(containerId, className) {
+    function agregarFila(containerId, className, valorInicial = '') {
         const container = document.getElementById(containerId);
         const div = document.createElement('div');
         div.className = 'input-group input-group-sm mb-2';
+        let valFormatted = valorInicial ? Number(valorInicial).toLocaleString('es-CO') : '';
         div.innerHTML = `
             <span class="input-group-text">$</span>
-            <input type="text" class="form-control currency-input ${className}" value="" placeholder="0" oninput="formatCurrencyInput(this); calcularArqueo();" onfocus="this.select()" onblur="if(this.value==='')this.value='0';" onkeydown="manejarTecladoDinamico(event, '${containerId}', '${className}')">
+            <input type="text" class="form-control currency-input ${className}" value="${valFormatted}" placeholder="0" oninput="formatCurrencyInput(this); calcularArqueo();" onfocus="this.select()" onblur="if(this.value==='')this.value='0';" onkeydown="manejarTecladoDinamico(event, '${containerId}', '${className}')">
             <button class="btn btn-outline-danger no-print" type="button" onclick="this.parentElement.remove(); calcularArqueo();">✕</button>
         `;
         container.appendChild(div);
         return div.querySelector('input');
+    }
+
+    function cargarDatoAnterior() {
+        const fechaBuscada = document.getElementById('buscarFecha').value;
+        const nombreBuscado = document.getElementById('buscarNombre').value.trim();
+
+        if (!fechaBuscada || !nombreBuscado) {
+            alert('Por favor ingrese tanto la fecha de reporte como el nombre.');
+            return;
+        }
+
+        const url = "https://script.google.com/macros/s/AKfycbyWT_W9qpzz36mrLcH8lSvWpBYb6UNWgmitZPo94pnFiMmqkfT6AKXu2Xg0MAgwYEJd/exec?fecha=" + fechaBuscada + "&nombre=" + encodeURIComponent(nombreBuscado);
+
+        fetch(url)
+            .then(res => res.json())
+            .then(data => {
+                if (!data || data.length === 0) {
+                    alert('No se encontró ningún registro para ' + nombreBuscado + ' en la fecha ' + fechaBuscada);
+                    return;
+                }
+
+                const reg = data[0]; // Tomar el primer resultado encontrado
+                document.getElementById('tipoReporte').value = reg.tipo.toLowerCase();
+                cambiarTipoReporte();
+                document.getElementById('nombrePersona').value = reg.nombre;
+                document.getElementById('fecha').value = reg.fechaReporte;
+                document.getElementById('totalVenta').value = reg.totalVenta ? Number(reg.totalVenta).toLocaleString('es-CO') : '0';
+
+                // Rellenar cantidades de billetes y monedas
+                const inputsBilletes = document.querySelectorAll('#tablaBilletes input');
+                inputsBilletes.forEach(inp => {
+                    let key = inp.dataset.key;
+                    if (reg[key] !== undefined) {
+                        inp.value = reg[key];
+                    }
+                });
+
+                // Rellenar listas dinámicas de créditos, datáfonos y aditivos
+                document.getElementById('listaCreditos').innerHTML = '';
+                if (reg.creditosLista) {
+                    let creds = reg.creditosLista.split(',');
+                    creds.forEach(c => agregarFila('listaCreditos', 'credito-val', c.trim()));
+                } else {
+                    agregarFila('listaCreditos', 'credito-val', 0);
+                }
+
+                document.getElementById('listaDatafono').innerHTML = '';
+                if (reg.datafonoLista) {
+                    let datas = reg.datafonoLista.split(',');
+                    datas.forEach(d => agregarFila('listaDatafono', 'datafono-val', d.trim()));
+                } else {
+                    agregarFila('listaDatafono', 'datafono-val', 0);
+                }
+
+                document.getElementById('listaAditivos').innerHTML = '';
+                if (reg.aditivosLista) {
+                    let adits = reg.aditivosLista.split(',');
+                    adits.forEach(a => agregarFila('listaAditivos', 'aditivo-val', a.trim()));
+                } else {
+                    agregarFila('listaAditivos', 'aditivo-val', 0);
+                }
+
+                calcularArqueo();
+                alert('¡Datos de ' + reg.nombre + ' cargados exitosamente!');
+            })
+            .catch(err => {
+                alert('Error al cargar el registro: ' + err);
+            });
     }
 
     function manejarTecladoDinamico(event, containerId, className) {
@@ -424,7 +522,7 @@
             datalist.appendChild(newOpt);
         }
         
-        const urlGoogleScript = "https://script.google.com/macros/s/AKfycbyWT_W9qpzz36mrLcH8lSvWpBYb6UNWgmitZPo94pnFiMmqkfT6AKXu2Xg0MAgwYEJd/exec";
+        const urlGoogleScript = "https://script.google.com/macros/s/AKfycby-uExHr2F3mbk68BMDYkMZtLraQlMyvWk3ZXwe-LUdCL0y2-yE2bFt0pHKGRSSDSip/exec";
         const tipoReporte = document.getElementById('tipoReporte').value;
 
         let cantidades = {};
