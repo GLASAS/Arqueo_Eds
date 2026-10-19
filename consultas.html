@@ -72,7 +72,7 @@
         const divResultado = document.getElementById('resultadoFiltro');
         divResultado.innerHTML = `<div class="text-info text-center py-3">Consultando registros para la fecha de ingreso ${fechaIngreso}...</div>`;
 
-        const urlGoogleScript = "https://script.google.com/macros/s/AKfycbyWT_W9qpzz36mrLcH8lSvWpBYb6UNWgmitZPo94pnFiMmqkfT6AKXu2Xg0MAgwYEJd/exec?fecha=" + fechaIngreso;
+        const urlGoogleScript = "https://script.google.com/macros/s/AKfycbw92nYy2-TZmKKqINLX9f0Io63KeGfcHFKuDL4lc6POZhnIVtO2N80_3uMw5uVV_vRe/exec?fecha=" + fechaIngreso;
 
         fetch(urlGoogleScript)
             .then(res => res.json())
