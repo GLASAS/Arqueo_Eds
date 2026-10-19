@@ -108,7 +108,7 @@
                     </tr>
                 </thead>
                 <tbody id="tablaBilletes">
-                    <!-- Generado dinámicamente -->
+                    <!-- Generado dinámicamente con JavaScript -->
                 </tbody>
                 <tfoot>
                     <tr class="table-secondary fw-bold">
@@ -187,8 +187,8 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-    // ÚNICA CONSTANTE GLOBAL CON TU URL DE GOOGLE APPS SCRIPT
-    const URL_WEB_APP = "https://script.google.com/macros/s/AKfycbwR0BVwVcEzmpcWdEsztZkOexs3lHJX77PAOaA9YDiQCZSJn3s0zq5fh0u8GCEZsRpp/exec";
+    // URL CENTRALIZADA DE GOOGLE APPS SCRIPT
+    const URL_WEB_APP = "https://script.google.com/macros/s/AKfycbwv4HymHYJ6K17WquAoxtHVxKepuEH2vhAOd8iULdlQKs1ZyQ649In4RHyAvRE9zMuu/exec";
 
     const denominaciones = [
         {val: 100000, tipo: 'billete', label: '100.000 (Billete)', key: 'b100000'},
@@ -491,58 +491,4 @@
             document.getElementById('totalVenta').value = '';
             document.getElementById('fecha').valueAsDate = new Date();
             
-            document.querySelectorAll('#tablaBilletes input').forEach(input => {
-                input.value = '0';
-            });
-
-            inicializarFilasDinamicas();
-            calcularArqueo();
-        }
-    }
-
-    function enviarAGoogleSheets() {
-        const nombre = document.getElementById('nombrePersona').value.trim();
-        if (!nombre) {
-            alert('Por favor ingrese o seleccione el nombre.');
-            return;
-        }
-
-        const datalist = document.getElementById('listaNombres');
-        let existe = Array.from(datalist.options).some(opt => opt.value.toUpperCase() === nombre.toUpperCase());
-        if (!existe) {
-            const newOpt = document.createElement('option');
-            newOpt.value = nombre.toUpperCase();
-            datalist.appendChild(newOpt);
-        }
-        
-        const tipoReporte = document.getElementById('tipoReporte').value;
-
-        let cantidades = {};
-        document.querySelectorAll('#tablaBilletes input').forEach(input => {
-            cantidades[input.dataset.key] = parseInt(input.value) || 0;
-        });
-
-        let creditosArr = [];
-        document.querySelectorAll('.credito-val').forEach(input => {
-            let val = parseCurrency(input.value);
-            if (val > 0) creditosArr.push(val);
-        });
-
-        let datafonoArr = [];
-        document.querySelectorAll('.datafono-val').forEach(input => {
-            let val = parseCurrency(input.value);
-            if (val > 0) datafonoArr.push(val);
-        });
-
-        let aditivosArr = [];
-        document.querySelectorAll('.aditivo-val').forEach(input => {
-            let val = parseCurrency(input.value);
-            if (val > 0) aditivosArr.push(val);
-        });
-
-        const datos = {
-            tipo: tipoReporte,
-            nombre: nombre.toUpperCase(),
-            fecha: document.getElementById('fecha').value,
-            totalVenta: parseCurrency(document.getElementById('totalVenta').value),
-            ...cantidades,
+            document.querySelectorAll('#tablaBilletes input').forEach(input
