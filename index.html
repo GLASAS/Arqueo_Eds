@@ -187,6 +187,9 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
+    // ÚNICA CONSTANTE CON LA URL GLOBAL DE GOOGLE APPS SCRIPT
+    const URL_WEB_APP = "https://script.google.com/macros/s/AKfycbygFKEsEt25yvOBx_Vsx_uCU5Nhhg3NxtykW3ZXmB88-BU1ZBpKXelATlI8B3rvDw31/exec";
+
     const denominaciones = [
         {val: 100000, tipo: 'billete', label: '100.000 (Billete)', key: 'b100000'},
         {val: 50000, tipo: 'billete', label: '50.000 (Billete)', key: 'b50000'},
@@ -288,7 +291,7 @@
             return;
         }
 
-        const url = "https://script.google.com/macros/s/AKfycbyLa3a0hPkG2ORpUkXSngHV-0BzqWBJEZm3Sf5sQBNblxEIHB8Fr6zoz2UM0patTg1U/exec?fecha=" + fechaBuscada + "&nombre=" + encodeURIComponent(nombreBuscado);
+        const url = URL_WEB_APP + "?fecha=" + fechaBuscada + "&nombre=" + encodeURIComponent(nombreBuscado);
 
         fetch(url)
             .then(res => res.json())
@@ -313,32 +316,22 @@
                     }
                 });
 
-                document.getElementById('listaCreditos').innerHTML = '';
-                let credsStr = reg.creditosLista ? reg.creditosLista.toString().trim() : "";
-                if (credsStr !== "" && credsStr !== "0") {
-                    let creds = credsStr.split(',');
-                    creds.forEach(c => agregarFila('listaCreditos', 'credito-val', c.trim()));
-                } else {
-                    agregarFila('listaCreditos', 'credito-val', 0);
+                // Función auxiliar segura para rellenar campos dinámicos (evita errores si viene vacío o número)
+                function rellenarListaDinamica(containerId, className, valorCrudo) {
+                    const contenedor = document.getElementById(containerId);
+                    contenedor.innerHTML = '';
+                    let str = (valorCrudo !== null && valorCrudo !== undefined) ? valorCrudo.toString().trim() : "";
+                    if (str !== "" && str !== "0") {
+                        let elementos = str.split(',');
+                        elementos.forEach(el => agregarFila(containerId, className, el.trim()));
+                    } else {
+                        agregarFila(containerId, className, 0);
+                    }
                 }
 
-                document.getElementById('listaDatafono').innerHTML = '';
-                let datasStr = reg.datafonoLista ? reg.datafonoLista.toString().trim() : "";
-                if (datasStr !== "" && datasStr !== "0") {
-                    let datas = datasStr.split(',');
-                    datas.forEach(d => agregarFila('listaDatafono', 'datafono-val', d.trim()));
-                } else {
-                    agregarFila('listaDatafono', 'datafono-val', 0);
-                }
-
-                document.getElementById('listaAditivos').innerHTML = '';
-                let aditsStr = reg.aditivosLista ? reg.aditivosLista.toString().trim() : "";
-                if (aditsStr !== "" && aditsStr !== "0") {
-                    let adits = aditsStr.split(',');
-                    adits.forEach(a => agregarFila('listaAditivos', 'aditivo-val', a.trim()));
-                } else {
-                    agregarFila('listaAditivos', 'aditivo-val', 0);
-                }
+                rellenarListaDinamica('listaCreditos', 'credito-val', reg.creditosLista);
+                rellenarListaDinamica('listaDatafono', 'datafono-val', reg.datafonoLista);
+                rellenarListaDinamica('listaAditivos', 'aditivo-val', reg.aditivosLista);
 
                 calcularArqueo();
                 alert('¡Datos de ' + reg.nombre + ' cargados exitosamente!');
@@ -488,107 +481,4 @@
         }
 
         document.getElementById('resTotalVenta').innerText = `$ ${totalVenta.toLocaleString('es-CO')}`;
-        document.getElementById('resVlrBilletes').innerText = `$ ${vlrBilletes.toLocaleString('es-CO')}`;
-        document.getElementById('resVlrMonedas').innerText = `$ ${vlrMonedas.toLocaleString('es-CO')}`;
-        document.getElementById('resTotalArqueo').innerText = `$ ${totalArqueo.toLocaleString('es-CO')}`;
-    }
-
-    function nuevoArqueo() {
-        if (confirm("¿Deseas limpiar el formulario para iniciar un nuevo arqueo?")) {
-            document.getElementById('nombrePersona').value = '';
-            document.getElementById('totalVenta').value = '';
-            document.getElementById('fecha').valueAsDate = new Date();
-            
-            document.querySelectorAll('#tablaBilletes input').forEach(input => {
-                input.value = '0';
-            });
-
-            inicializarFilasDinamicas();
-            calcularArqueo();
-        }
-    }
-
-    function enviarAGoogleSheets() {
-        const nombre = document.getElementById('nombrePersona').value.trim();
-        if (!nombre) {
-            alert('Por favor ingrese o seleccione el nombre.');
-            return;
-        }
-
-        const datalist = document.getElementById('listaNombres');
-        let existe = Array.from(datalist.options).some(opt => opt.value.toUpperCase() === nombre.toUpperCase());
-        if (!existe) {
-            const newOpt = document.createElement('option');
-            newOpt.value = nombre.toUpperCase();
-            datalist.appendChild(newOpt);
-        }
-        
-        const urlGoogleScript = "https://script.google.com/macros/s/AKfycbyLa3a0hPkG2ORpUkXSngHV-0BzqWBJEZm3Sf5sQBNblxEIHB8Fr6zoz2UM0patTg1U/exec";
-        const tipoReporte = document.getElementById('tipoReporte').value;
-
-        let cantidades = {};
-        document.querySelectorAll('#tablaBilletes input').forEach(input => {
-            cantidades[input.dataset.key] = parseInt(input.value) || 0;
-        });
-
-        let creditosArr = [];
-        document.querySelectorAll('.credito-val').forEach(input => {
-            let val = parseCurrency(input.value);
-            if (val > 0) creditosArr.push(val);
-        });
-
-        let datafonoArr = [];
-        document.querySelectorAll('.datafono-val').forEach(input => {
-            let val = parseCurrency(input.value);
-            if (val > 0) datafonoArr.push(val);
-        });
-
-        let aditivosArr = [];
-        document.querySelectorAll('.aditivo-val').forEach(input => {
-            let val = parseCurrency(input.value);
-            if (val > 0) aditivosArr.push(val);
-        });
-
-        const datos = {
-            tipo: tipoReporte,
-            nombre: nombre.toUpperCase(),
-            fecha: document.getElementById('fecha').value,
-            totalVenta: parseCurrency(document.getElementById('totalVenta').value),
-            ...cantidades,
-            vlrBilletes: parseCurrency(document.getElementById('lblVlrBilletes').innerText),
-            vlrMonedas: parseCurrency(document.getElementById('lblVlrMonedas').innerText),
-            totalDinero: parseCurrency(document.getElementById('lblTotalDinero').innerText),
-            creditosLista: creditosArr.join(', '),
-            totalCreditos: tipoReporte === 'islero' ? parseCurrency(document.getElementById('lblTotalCreditos').innerText) : 0,
-            datafonoLista: datafonoArr.join(', '),
-            totalDatafono: tipoReporte === 'islero' ? parseCurrency(document.getElementById('lblTotalDatafono').innerText) : 0,
-            aditivosLista: aditivosArr.join(', '),
-            totalAditivos: tipoReporte === 'islero' ? parseCurrency(document.getElementById('lblTotalAditivos').innerText) : 0,
-            arqueo: parseCurrency(document.getElementById('resTotalArqueo').innerText),
-            diferencia: tipoReporte === 'islero' ? parseCurrency(document.getElementById('resDiferencia').innerText) : 0
-        };
-
-        const btnEnviar = event.target;
-        const textoOriginal = btnEnviar.innerText;
-        btnEnviar.innerText = "Enviando...";
-        btnEnviar.disabled = true;
-
-        fetch(urlGoogleScript, {
-            method: 'POST',
-            mode: 'no-cors',
-            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-            body: JSON.stringify(datos)
-        }).then(() => {
-            alert('¡Reporte detallado enviado exitosamente a Google Drive!');
-            btnEnviar.innerText = textoOriginal;
-            btnEnviar.disabled = false;
-            nuevoArqueo();
-        }).catch(err => {
-            alert('Error al enviar: ' + err);
-            btnEnviar.innerText = textoOriginal;
-            btnEnviar.disabled = false;
-        });
-    }
-</script>
-</body>
-</html>
+        document.getElementById('resVlrBilletes').innerText = `$ ${vlrBillet
