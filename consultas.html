@@ -18,9 +18,9 @@
 </head>
 <body>
 <div class="container my-5">
-    <!-- ENCABEZADO CON LOGOTIPO, NOMBRE Y VERSIÓN V.1500 -->
+    <!-- ENCABEZADO CON LOGOTIPO, NOMBRE Y VERSIÓN V.1 -->
     <div class="text-center mb-4 p-3 bg-white shadow-sm rounded border position-relative">
-        <span class="badge bg-secondary position-absolute top-0 end-0 m-3">Versión V.1500</span>
+        <span class="badge bg-secondary position-absolute top-0 end-0 m-3">Versión V.1</span>
         <img src="logo biomax.png" alt="Logo Biomax" class="station-logo mb-2">
         <h2 class="fw-bold text-primary mb-1">Estación de Servicio Biomax Orquideas</h2>
         <p class="text-muted mb-0">Módulo de Consulta y Auditoría por Fecha de Ingreso</p>
@@ -59,7 +59,7 @@
 
 <script>
     // URL CENTRALIZADA DE GOOGLE APPS SCRIPT
-    const URL_WEB_APP = "https://script.google.com/macros/s/AKfycbwv4HymHYJ6K17WquAoxtHVxKepuEH2vhAOd8iULdlQKs1ZyQ649In4RHyAvRE9zMuu/exec";
+    const URL_WEB_APP = "https://script.google.com/macros/s/AKfycbygFKEsEt25yvOBx_Vsx_uCU5Nhhg3NxtykW3ZXmB88-BU1ZBpKXelATlI8B3rvDw31/exec";
 
     document.addEventListener("DOMContentLoaded", function() {
         document.getElementById('filtroFechaIngreso').valueAsDate = new Date();
@@ -115,26 +115,37 @@
                     let totalDatafono = Number(row.totalDatafono) || 0;
                     let totalAditivos = Number(row.totalAditivos) || 0;
                     let dif = Number(row.diferencia) || 0;
+                    let tipoReporte = row.tipo ? row.tipo.toUpperCase().trim() : "ISLERO";
 
-                    sumaEfectivo += totalEfectivo;
+                    // Si es Islero se suma, si es Mensajero/Aire/Baño se resta del total general
+                    if (tipoReporte === "ISLERO") {
+                        sumaEfectivo += totalEfectivo;
+                    } else {
+                        sumaEfectivo -= totalEfectivo;
+                    }
+
                     sumaCreditos += totalCreditos;
                     sumaDatafono += totalDatafono;
                     sumaAditivos += totalAditivos;
 
                     let estadoBadge = '';
-                    if (dif === 0) {
-                        estadoBadge = '<span class="badge bg-success">Cuadrado ($0)</span>';
-                    } else if (dif > 0) {
-                        estadoBadge = `<span class="badge bg-primary">Sobrante (+$${dif.toLocaleString('es-CO')})</span>`;
+                    if (tipoReporte === "ISLERO") {
+                        if (dif === 0) {
+                            estadoBadge = '<span class="badge bg-success">Cuadrado ($0)</span>';
+                        } else if (dif > 0) {
+                            estadoBadge = `<span class="badge bg-primary">Sobrante (+$${dif.toLocaleString('es-CO')})</span>`;
+                        } else {
+                            estadoBadge = `<span class="badge bg-danger">Faltante ($${dif.toLocaleString('es-CO')})</span>`;
+                        }
                     } else {
-                        estadoBadge = `<span class="badge bg-danger">Faltante ($${dif.toLocaleString('es-CO')})</span>`;
+                        estadoBadge = '<span class="badge bg-success">Cuadrado ($0)</span>';
                     }
 
                     html += `
                         <tr>
                             <td class="fw-bold">${row.nombre}</td>
                             <td class="text-center">${row.fechaReporte}</td>
-                            <td class="text-center text-uppercase">${row.tipo}</td>
+                            <td class="text-center text-uppercase">${tipoReporte}</td>
                             <td class="text-end text-success fw-bold">$ ${totalEfectivo.toLocaleString('es-CO')}</td>
                             <td class="text-end">$ ${totalCreditos.toLocaleString('es-CO')}</td>
                             <td class="text-end">$ ${totalDatafono.toLocaleString('es-CO')}</td>
