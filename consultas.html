@@ -58,6 +58,9 @@
 </div>
 
 <script>
+    // ÚNICA CONSTANTE CON LA URL GLOBAL DE GOOGLE APPS SCRIPT
+    const URL_WEB_APP = "https://script.google.com/macros/s/AKfycbyLa3a0hPkG2ORpUkXSngHV-0BzqWBJEZm3Sf5sQBNblxEIHB8Fr6zoz2UM0patTg1U/exec";
+
     document.addEventListener("DOMContentLoaded", function() {
         document.getElementById('filtroFechaIngreso').valueAsDate = new Date();
         consultarPorFechaIngreso();
@@ -73,9 +76,9 @@
         const divResultado = document.getElementById('resultadoFiltro');
         divResultado.innerHTML = `<div class="text-info text-center py-3">Consultando registros para la fecha de ingreso ${fechaIngreso}...</div>`;
 
-        const urlGoogleScript = "https://script.google.com/macros/s/AKfycbyLa3a0hPkG2ORpUkXSngHV-0BzqWBJEZm3Sf5sQBNblxEIHB8Fr6zoz2UM0patTg1U/exec?fecha=" + fechaIngreso;
+        const url = URL_WEB_APP + "?fecha=" + fechaIngreso;
 
-        fetch(urlGoogleScript)
+        fetch(url)
             .then(res => res.json())
             .then(data => {
                 if (!data || data.length === 0) {
