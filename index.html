@@ -22,9 +22,9 @@
 </head>
 <body>
 <div class="container my-4">
-    <!-- ENCABEZADO CON LOGOTIPO, NOMBRE Y VERSIÓN V.1500 -->
+    <!-- ENCABEZADO CON LOGOTIPO, NOMBRE Y VERSIÓN V.1 -->
     <div class="text-center mb-4 p-3 bg-white shadow-sm rounded border position-relative">
-        <span class="badge bg-secondary position-absolute top-0 end-0 m-3">Versión V.1500</span>
+        <span class="badge bg-secondary position-absolute top-0 end-0 m-3">Versión V.1600</span>
         <img src="logo biomax.png" alt="Logo Biomax" class="station-logo mb-2">
         <h2 class="fw-bold text-primary mb-1">Estación de Servicio Biomax Orquideas</h2>
         <p class="text-muted mb-0">Relación de Caja, Arqueos de Isleros y Consolidado</p>
@@ -108,7 +108,7 @@
                     </tr>
                 </thead>
                 <tbody id="tablaBilletes">
-                    <!-- Generado dinámicamente con JavaScript -->
+                    <!-- Filas generadas por JavaScript -->
                 </tbody>
                 <tfoot>
                     <tr class="table-secondary fw-bold">
@@ -491,4 +491,95 @@
             document.getElementById('totalVenta').value = '';
             document.getElementById('fecha').valueAsDate = new Date();
             
-            document.querySelectorAll('#tablaBilletes input').forEach(input
+            document.querySelectorAll('#tablaBilletes input').forEach(input => {
+                input.value = '0';
+            });
+
+            inicializarFilasDinamicas();
+            calcularArqueo();
+        }
+    }
+
+    function enviarAGoogleSheets() {
+        const nombre = document.getElementById('nombrePersona').value.trim();
+        if (!nombre) {
+            alert('Por favor ingrese o seleccione el nombre.');
+            return;
+        }
+
+        const datalist = document.getElementById('listaNombres');
+        let existe = Array.from(datalist.options).some(opt => opt.value.toUpperCase() === nombre.toUpperCase());
+        if (!existe) {
+            const newOpt = document.createElement('option');
+            newOpt.value = nombre.toUpperCase();
+            datalist.appendChild(newOpt);
+        }
+        
+        const tipoReporte = document.getElementById('tipoReporte').value;
+
+        let cantidades = {};
+        document.querySelectorAll('#tablaBilletes input').forEach(input => {
+            cantidades[input.dataset.key] = parseInt(input.value) || 0;
+        });
+
+        let creditosArr = [];
+        document.querySelectorAll('.credito-val').forEach(input => {
+            let val = parseCurrency(input.value);
+            if (val > 0) creditosArr.push(val);
+        });
+
+        let datafonoArr = [];
+        document.querySelectorAll('.datafono-val').forEach(input => {
+            let val = parseCurrency(input.value);
+            if (val > 0) datafonoArr.push(val);
+        });
+
+        let aditivosArr = [];
+        document.querySelectorAll('.aditivo-val').forEach(input => {
+            let val = parseCurrency(input.value);
+            if (val > 0) aditivosArr.push(val);
+        });
+
+        const datos = {
+            tipo: tipoReporte,
+            nombre: nombre.toUpperCase(),
+            fecha: document.getElementById('fecha').value,
+            totalVenta: parseCurrency(document.getElementById('totalVenta').value),
+            ...cantidades,
+            vlrBilletes: parseCurrency(document.getElementById('lblVlrBilletes').innerText),
+            vlrMonedas: parseCurrency(document.getElementById('lblVlrMonedas').innerText),
+            totalDinero: parseCurrency(document.getElementById('lblTotalDinero').innerText),
+            creditosLista: creditosArr.join(', '),
+            totalCreditos: tipoReporte === 'islero' ? parseCurrency(document.getElementById('lblTotalCreditos').innerText) : 0,
+            datafonoLista: datafonoArr.join(', '),
+            totalDatafono: tipoReporte === 'islero' ? parseCurrency(document.getElementById('lblTotalDatafono').innerText) : 0,
+            aditivosLista: aditivosArr.join(', '),
+            totalAditivos: tipoReporte === 'islero' ? parseCurrency(document.getElementById('lblTotalAditivos').innerText) : 0,
+            arqueo: parseCurrency(document.getElementById('resTotalArqueo').innerText),
+            diferencia: tipoReporte === 'islero' ? parseCurrency(document.getElementById('resDiferencia').innerText) : 0
+        };
+
+        const btnEnviar = event.target;
+        const textoOriginal = btnEnviar.innerText;
+        btnEnviar.innerText = "Enviando...";
+        btnEnviar.disabled = true;
+
+        fetch(URL_WEB_APP, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify(datos)
+        }).then(() => {
+            alert('¡Reporte detallado enviado exitosamente a Google Drive!');
+            btnEnviar.innerText = textoOriginal;
+            btnEnviar.disabled = false;
+            nuevoArqueo();
+        }).catch(err => {
+            alert('Error al enviar: ' + err);
+            btnEnviar.innerText = textoOriginal;
+            btnEnviar.disabled = false;
+        });
+    }
+</script>
+</body>
+</html>
