@@ -23,7 +23,7 @@
 <div class="container my-4">
     <div class="text-center mb-4">
         <h2 class="fw-bold text-primary">RELACIÓN DE CAJA Y CONSOLIDADO</h2>
-        <p class="text-muted">Control de Arqueos (Isleros) y Consolidado de Billetes / Monedas (Mensajero)</p>
+        <p class="text-muted">Control de Arqueos (Isleros) y Consolidado de Billetes / Monedas</p>
     </div>
 
     <!-- DATOS GENERALES -->
@@ -35,9 +35,8 @@
                 <select class="form-select" id="tipoReporte" onchange="cambiarTipoReporte()">
                     <option value="islero">Arqueo de Islero</option>
                     <option value="mensajero">Consolidado Mensajero (Consignación)</option>
-                    <option value="mensajero">Consolidado Aire (Consignación)</option>
-                    <option value="mensajero">Consolidado Baño (Consignación)</option>
-
+                    <option value="aire">Consolidado Aire (Consignación)</option>
+                    <option value="bano">Consolidado Baño (Consignación)</option>
                 </select>
             </div>
             <div class="col-md-3">
@@ -144,7 +143,8 @@
 
         <div class="text-center no-print">
             <button type="button" class="btn btn-success btn-lg px-4 me-2" onclick="window.print()">🖨️ Imprimir / Guardar PDF</button>
-            <button type="button" class="btn btn-primary btn-lg px-4" onclick="enviarAGoogleSheets()">☁️ Enviar a Google Drive (Sheets)</button>
+            <button type="button" class="btn btn-primary btn-lg px-4 me-2" onclick="enviarAGoogleSheets()">☁️ Enviar a Google Drive (Sheets)</button>
+            <button type="button" class="btn btn-outline-secondary btn-lg px-4" onclick="nuevoArqueo()">🔄 Nuevo Arqueo (Limpiar)</button>
         </div>
     </div>
 </div>
@@ -182,11 +182,19 @@
             tbody.appendChild(tr);
         });
 
+        inicializarFilasDinamicas();
+        calcularArqueo();
+    });
+
+    function inicializarFilasDinamicas() {
+        document.getElementById('listaCreditos').innerHTML = '';
+        document.getElementById('listaDatafono').innerHTML = '';
+        document.getElementById('listaAditivos').innerHTML = '';
+
         agregarFila('listaCreditos', 'credito-val');
         agregarFila('listaDatafono', 'datafono-val');
         agregarFila('listaAditivos', 'aditivo-val');
-        calcularArqueo();
-    });
+    }
 
     function cambiarTipoReporte() {
         const tipo = document.getElementById('tipoReporte').value;
@@ -198,8 +206,8 @@
         const filaResAditivos = document.getElementById('filaResAditivos');
         const filaResDiferencia = document.getElementById('filaResDiferencia');
 
-        if (tipo === 'mensajero') {
-            labelNombre.innerText = "Nombre del Mensajero";
+        if (tipo === 'mensajero' || tipo === 'aire' || tipo === 'bano') {
+            labelNombre.innerText = "Nombre del Responsable";
             document.getElementById('nombrePersona').placeholder = "Ej. Robinson";
             seccionOtros.style.display = 'none';
             tituloResumen.innerText = "Resumen de Consignación (Consolidado Billete / Moneda)";
@@ -226,10 +234,49 @@
         div.className = 'input-group input-group-sm mb-2';
         div.innerHTML = `
             <span class="input-group-text">$</span>
-            <input type="text" class="form-control currency-input ${className}" placeholder="0" oninput="formatCurrencyInput(this); calcularArqueo();">
+            <input type="text" class="form-control currency-input ${className}" placeholder="0" oninput="formatCurrencyInput(this); calcularArqueo();" onkeydown="manejarTecladoDinamico(event, '${containerId}', '${className}')">
             <button class="btn btn-outline-danger no-print" type="button" onclick="this.parentElement.remove(); calcularArqueo();">✕</button>
         `;
         container.appendChild(div);
+        return div.querySelector('input');
+    }
+
+    function manejarTecladoDinamico(event, containerId, className) {
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            const nuevoInput = agregarFila(containerId, className);
+            nuevoInput.focus();
+        } else if (event.key === 'Tab' && !event.shiftKey) {
+            event.preventDefault();
+            const creditos = Array.from(document.querySelectorAll('.credito-val'));
+            const datafonos = Array.from(document.querySelectorAll('.datafono-val'));
+            const aditivos = Array.from(document.querySelectorAll('.aditivo-val'));
+
+            const currentIndex = Array.from(document.querySelectorAll('.' + className)).indexOf(event.target);
+
+            if (className === 'credito-val') {
+                if (currentIndex < datafonos.length) {
+                    datafonos[currentIndex].focus();
+                } else {
+                    const nuevo = agregarFila('listaDatafono', 'datafono-val');
+                    nuevo.focus();
+                }
+            } else if (className === 'datafono-val') {
+                if (currentIndex < aditivos.length) {
+                    aditivos[currentIndex].focus();
+                } else {
+                    const nuevo = agregarFila('listaAditivos', 'aditivo-val');
+                    nuevo.focus();
+                }
+            } else if (className === 'aditivo-val') {
+                if (currentIndex + 1 < creditos.length) {
+                    creditos[currentIndex + 1].focus();
+                } else {
+                    const nuevo = agregarFila('listaCreditos', 'credito-val');
+                    nuevo.focus();
+                }
+            }
+        }
     }
 
     function formatCurrencyInput(input) {
@@ -242,7 +289,6 @@
 
     function parseCurrency(value) {
         if (!value) return 0;
-        // Eliminar símbolos de moneda ($), espacios y limpiar correctamente
         let cleanVal = value.toString().replace(/[^\d.,-]/g, '');
         return parseFloat(cleanVal.replace(/\./g, '').replace(/,/g, '.')) || 0;
     }
@@ -321,6 +367,21 @@
         document.getElementById('resTotalArqueo').innerText = `$ ${totalArqueo.toLocaleString('es-CO')}`;
     }
 
+    function nuevoArqueo() {
+        if (confirm("¿Deseas limpiar el formulario para iniciar un nuevo arqueo?")) {
+            document.getElementById('nombrePersona').value = '';
+            document.getElementById('totalVenta').value = '';
+            document.getElementById('fecha').valueAsDate = new Date();
+            
+            document.querySelectorAll('#tablaBilletes input').forEach(input => {
+                input.value = '0';
+            });
+
+            inicializarFilasDinamicas();
+            calcularArqueo();
+        }
+    }
+
     function enviarAGoogleSheets() {
         const nombre = document.getElementById('nombrePersona').value.trim();
         if (!nombre) {
@@ -336,7 +397,8 @@
             datalist.appendChild(newOpt);
         }
         
-        const urlGoogleScript = "https://script.google.com/macros/s/AKfycbzYct0f5BJDAa_OWUTI-MxIkxbu1wIyvxtXP_v9Hv8Ueca5VZeqUnSVGzd4wx4qSa1_/exec";
+        // URL DE GOOGLE APPS SCRIPT
+        const urlGoogleScript = "https://script.google.com/macros/s/AKfycbymHH87mfT818AB9JTXUsAb1AHV78wfclxYzmylOBnvpckjCnbHiyp_wr6_FEI0Qdwe/exec";
         const tipoReporte = document.getElementById('tipoReporte').value;
 
         let cantidades = {};
@@ -395,6 +457,7 @@
             alert('¡Reporte detallado enviado exitosamente a Google Drive!');
             btnEnviar.innerText = textoOriginal;
             btnEnviar.disabled = false;
+            nuevoArqueo();
         }).catch(err => {
             alert('Error al enviar: ' + err);
             btnEnviar.innerText = textoOriginal;
