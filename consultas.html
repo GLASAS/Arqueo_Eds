@@ -33,11 +33,11 @@
         <span class="badge bg-primary px-3 py-2 rounded-pill position-absolute top-0 end-0 m-3">Versión V.1635</span>
         <img src="logo biomax.png" alt="Logo Biomax" class="station-logo mb-2">
         <h2 class="fw-bold text-primary mb-1">Estación de Servicio Biomax Orquideas</h2>
-        <p class="text-muted mb-0">Dashboard Gerencial, Desglose de Consignaciones y Consultas</p>
+        <p class="text-muted mb-0">Dashboard Gerencial, Desglose de Consignaciones y Consultas por Fecha de Ingreso</p>
     </div>
 
     <div class="mb-4 no-print text-center">
-        <a href="index.html" class="btn btn-modern-dark">← Volver al Módulo de Registro (Arqueos)</a>
+        <a href="Arqueo19.html" class="btn btn-modern-dark">← Volver al Módulo de Registro (Arqueos)</a>
     </div>
 
     <!-- 📊 DASHBOARD GERENCIAL -->
@@ -52,55 +52,42 @@
         <div class="row g-3" id="dashboardContainer"></div>
     </div>
 
-    <!-- 🔍 FILTROS DE CONSULTA Y DESGLOSE -->
+    <!-- 🔍 FILTROS DE CONSULTA Y AUDITORÍA POR FECHA DE INGRESO -->
     <div class="card p-4 bg-white border-0 no-print">
-        <h5 class="text-secondary border-bottom pb-2 mb-3">🔍 Informe de Desglose de Consignaciones y Ventas</h5>
+        <h5 class="text-secondary border-bottom pb-2 mb-3">🔍 Auditoría y Desglose por Fecha de Ingreso</h5>
         <div class="row g-3 align-items-end">
-            <div class="col-md-3">
-                <label class="form-label fw-bold">Mes o Fecha del Reporte</label>
-                <input type="month" class="form-control" id="filtroMes">
+            <div class="col-md-4">
+                <label class="form-label fw-bold">Seleccione Fecha de Ingreso</label>
+                <input type="date" class="form-control" id="filtroFechaIngreso">
             </div>
-            <div class="col-md-3">
-                <label class="form-label fw-bold">Islero / Responsable</label>
-                <select class="form-select" id="filtroIslero">
-                    <option value="">-- Todos los Responsables --</option>
-                    <option value="DANILO">DANILO</option>
-                    <option value="ROBINSON">ROBINSON</option>
-                    <option value="CARLOS">CARLOS</option>
-                    <option value="STEFANY">STEFANY</option>
-                    <option value="VICENTE">VICENTE</option>
-                </select>
-            </div>
-            <div class="col-md-3">
-                <label class="form-label fw-bold">Tipo de Reporte</label>
-                <select class="form-select" id="filtroTipo">
-                    <option value="">-- Todos los Tipos --</option>
-                    <option value="ISLERO">ISLERO</option>
-                    <option value="MENSAJERO">MENSAJERO</option>
-                    <option value="AIRE">AIRE</option>
-                    <option value="BAÑO">BAÑO</option>
-                </select>
-            </div>
-            <div class="col-md-3">
-                <button type="button" class="btn btn-modern-primary w-100" onclick="ejecutarConsultaAvanzada()">📊 Generar Informe y Desglose</button>
+            <div class="col-md-4">
+                <button type="button" class="btn btn-modern-primary w-100" onclick="consultarPorFechaIngreso()">📊 Generar Informe y Desglose</button>
             </div>
         </div>
     </div>
 
-    <!-- SECCIÓN DE DESGLOSE RESUMIDO POR PERSONA -->
-    <div class="card p-4 bg-white border-0 mt-4" id="seccionDesgloseResumen" style="display:none;">
-        <h5 class="text-success border-bottom pb-2 mb-3 fw-bold">📌 Desglose Total Consignado / Efectivo por Responsable</h5>
-        <div class="table-responsive">
-            <table class="table table-bordered table-sm align-middle" id="tablaDesgloseResumen">
-                <thead class="table-success text-center">
-                    <tr>
-                        <th>Responsable / Islero</th>
-                        <th>Tipo</th>
-                        <th>Total Efectivo / Consignado ($)</th>
-                    </tr>
-                </thead>
-                <tbody></tbody>
-            </table>
+    <!-- PANEL DE VALIDACIÓN DE CAJA (ISLEROS VS ROBINSON) -->
+    <div class="card p-4 bg-white border-0 mt-4" id="seccionValidacionCaja" style="display:none;">
+        <h5 class="text-success border-bottom pb-2 mb-3 fw-bold">⚖️ Validación de Caja por Fecha de Ingreso</h5>
+        <div class="row g-3">
+            <div class="col-md-4">
+                <div class="p-3 bg-light rounded border">
+                    <span class="text-muted small fw-bold">TOTAL EFECTIVO ISLEROS</span>
+                    <h4 class="text-primary fw-bold mt-1" id="valTotalIsleros">$ 0</h4>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="p-3 bg-light rounded border">
+                    <span class="text-muted small fw-bold">CONSIGNADO POR ROBINSON (MENSAJERO)</span>
+                    <h4 class="text-success fw-bold mt-1" id="valTotalRobinson">$ 0</h4>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="p-3 bg-light rounded border">
+                    <span class="text-muted small fw-bold">ESTADO DE CUADRE GENERAL</span>
+                    <h4 class="fw-bold mt-1" id="valEstadoCuadre">$ 0</h4>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -111,7 +98,7 @@
             <button class="btn btn-modern-success btn-sm no-print" onclick="window.print()">🖨️ Imprimir / Guardar PDF</button>
         </div>
         <div id="resultadoFiltro">
-            <p class="text-muted text-center py-4">Seleccione los filtros y haga clic en "Generar Informe y Desglose".</p>
+            <p class="text-muted text-center py-4">Seleccione la fecha de ingreso y haga clic en "Generar Informe y Desglose".</p>
         </div>
     </div>
 </div>
@@ -123,10 +110,10 @@
         const hoy = new Date();
         const anioMes = hoy.toISOString().substring(0, 7);
         document.getElementById('dashMes').value = anioMes;
-        document.getElementById('filtroMes').value = anioMes;
+        document.getElementById('filtroFechaIngreso').valueAsDate = new Date();
         
         cargarDashboard();
-        ejecutarConsultaAvanzada();
+        consultarPorFechaIngreso();
     });
 
     function cargarDashboard() {
@@ -153,11 +140,9 @@
                     totalVentasMes += vta;
                     if (tipo === "ISLERO") {
                         recaudosIsleros[nombre] = (recaudosIsleros[nombre] || 0) + efectivo;
-                    } else {
+                    } else if (tipo === "MENSAJERO" && nombre.includes("ROBINSON")) {
                         totalConsignacionesMes += efectivo;
-                        if (nombre.includes("ROBINSON")) {
-                            totalRobinsonMes += efectivo;
-                        }
+                        totalRobinsonMes += efectivo;
                     }
                 });
 
@@ -196,73 +181,65 @@
             });
     }
 
-    function ejecutarConsultaAvanzada() {
-        const mesFiltro = document.getElementById('filtroMes').value;
-        const isleroFiltro = document.getElementById('filtroIslero').value;
-        const tipoFiltro = document.getElementById('filtroTipo').value;
+    function consultarPorFechaIngreso() {
+        const fechaIngreso = document.getElementById('filtroFechaIngreso').value;
+        if (!fechaIngreso) {
+            alert('Por favor seleccione una fecha de ingreso.');
+            return;
+        }
 
         const divResultado = document.getElementById('resultadoFiltro');
-        const seccionResumen = document.getElementById('seccionDesgloseResumen');
-        divResultado.innerHTML = `<div class="text-info text-center py-3">Generando informe y desglose...</div>`;
+        const seccionVal = document.getElementById('seccionValidacionCaja');
+        divResultado.innerHTML = `<div class="text-info text-center py-3">Consultando registros para la fecha de ingreso ${fechaIngreso}...</div>`;
 
-        fetch(URL_WEB_APP + "?modoDashboard=1")
+        const url = URL_WEB_APP + "?fecha=" + fechaIngreso;
+
+        fetch(url)
             .then(res => res.json())
             .then(data => {
                 if (!data || data.length === 0) {
-                    divResultado.innerHTML = `<div class="alert alert-warning text-center mt-3">No hay registros almacenados.</div>`;
-                    seccionResumen.style.display = 'none';
+                    divResultado.innerHTML = `<div class="alert alert-warning text-center mt-3">No se encontraron registros ingresados en la fecha: ${fechaIngreso}</div>`;
+                    seccionVal.style.display = 'none';
                     return;
                 }
 
-                let filtrados = data.filter(row => {
-                    let cumpleMes = mesFiltro ? (row.fechaReporte && row.fechaReporte.startsWith(mesFiltro)) : true;
-                    let cumpleIslero = isleroFiltro ? (row.nombre === isleroFiltro) : true;
-                    let cumpleTipo = tipoFiltro ? (row.tipo === tipoFiltro) : true;
-                    return cumpleMes && cumpleIslero && cumpleTipo;
-                });
+                let totalEfectivoIsleros = 0;
+                let totalConsignadoRobinson = 0;
 
-                if (filtrados.length === 0) {
-                    divResultado.innerHTML = `<div class="alert alert-warning text-center mt-3">No se encontraron registros con los filtros seleccionados.</div>`;
-                    seccionResumen.style.display = 'none';
-                    return;
-                }
-
-                // Agrupar para el desglose resumido por persona/islero
-                let resumenPersonas = {};
-                filtrados.forEach(row => {
-                    let nombre = row.nombre || "SIN NOMBRE";
-                    let tipo = row.tipo || "ISLERO";
+                data.forEach(row => {
                     let efectivo = Number(row.totalDinero) || 0;
-                    let key = nombre + "_" + tipo;
+                    let tipo = row.tipo ? row.tipo.toUpperCase().trim() : "";
+                    let nombre = row.nombre ? row.nombre.toUpperCase().trim() : "";
 
-                    if (!resumenPersonas[key]) {
-                        resumenPersonas[key] = { nombre: nombre, tipo: tipo, total: 0 };
+                    if (tipo === "ISLERO") {
+                        totalEfectivoIsleros += efectivo;
+                    } else if (tipo === "MENSAJERO" && nombre.includes("ROBINSON")) {
+                        totalConsignadoRobinson += efectivo;
                     }
-                    resumenPersonas[key].total += efectivo;
                 });
 
-                // Rellenar tabla de desglose resumido
-                let tbodyResumenHTML = "";
-                let granTotalDesglose = 0;
-                for (let k in resumenPersonas) {
-                    let item = resumenPersonas[k];
-                    granTotalDesglose += item.total;
-                    tbodyResumenHTML += `
-                        <tr>
-                            <td class="fw-bold">${item.nombre}</td>
-                            <td class="text-center text-uppercase">${item.tipo}</td>
-                            <td class="text-end text-success fw-bold">$ ${item.total.toLocaleString('es-CO')}</td>
-                        </tr>
-                    `;
+                // Mostrar panel de validación de caja
+                document.getElementById('valTotalIsleros').innerText = `$ ${totalEfectivoIsleros.toLocaleString('es-CO')}`;
+                document.getElementById('valTotalRobinson').innerText = `$ ${totalConsignadoRobinson.toLocaleString('es-CO')}`;
+
+                let diferenciaCuadre = totalConsignadoRobinson - totalEfectivoIsleros;
+                let lblCuadre = document.getElementById('valEstadoCuadre');
+                lblCuadre.innerText = `$ ${Math.abs(diferenciaCuadre).toLocaleString('es-CO')}`;
+
+                if (diferenciaCuadre === 0 && totalConsignadoRobinson > 0) {
+                    lblCuadre.className = "fw-bold mt-1 text-success";
+                    lblCuadre.innerText += " (CUADRADO EXACTO)";
+                } else if (diferenciaCuadre > 0) {
+                    lblCuadre.className = "fw-bold mt-1 text-primary";
+                    lblCuadre.innerText += " (SOBRANTE)";
+                } else if (totalConsignadoRobinson === 0) {
+                    lblCuadre.className = "fw-bold mt-1 text-muted";
+                    lblCuadre.innerText = "Falta registrar consignación de Robinson";
+                } else {
+                    lblCuadre.className = "fw-bold mt-1 text-danger";
+                    lblCuadre.innerText += " (FALTANTE)";
                 }
-                tbodyResumenHTML += `
-                    <tr class="table-secondary fw-bold">
-                        <td colspan="2" class="text-end">TOTAL CONSIGNADO / EFECTIVO:</td>
-                        <td class="text-end text-success">$ ${granTotalDesglose.toLocaleString('es-CO')}</td>
-                    </tr>
-                `;
-                document.querySelector('#tablaDesgloseResumen tbody').innerHTML = tbodyResumenHTML;
-                seccionResumen.style.display = 'block';
+                seccionVal.style.display = 'block';
 
                 // Rellenar tabla de detalle completo
                 let html = `
@@ -286,7 +263,7 @@
 
                 let sumaVentas = 0, sumaEfectivo = 0, sumaCreditos = 0, sumaDatafono = 0, sumaAditivos = 0;
 
-                filtrados.forEach(row => {
+                data.forEach(row => {
                     let vta = Number(row.totalVenta) || 0;
                     let efec = Number(row.totalDinero) || 0;
                     let cred = Number(row.totalCreditos) || 0;
@@ -301,7 +278,7 @@
                     sumaDatafono += dataf;
                     sumaAditivos += adit;
 
-                    let badge = tipo === "ISLERO" ? (dif === 0 ? '<span class="badge bg-success">Cuadrado</span>' : (dif > 0 ? `<span class="badge bg-primary">+${dif.toLocaleString()}` : `<span class="badge bg-danger">${dif.toLocaleString()}`)) : '<span class="badge bg-success">Consignación</span>';
+                    let badge = tipo === "ISLERO" ? (dif === 0 ? '<span class="badge bg-success">Cuadrado</span>' : (dif > 0 ? `<span class="badge bg-primary">+${dif.toLocaleString()}` : `<span class="badge bg-danger">${dif.toLocaleString()}`)) : '<span class="badge bg-success">Consignación Registrada</span>';
 
                     html += `
                         <tr>
