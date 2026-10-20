@@ -3,12 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Consulta y Auditoría - Estación de Servicio Biomax Orquideas</title>
+    <title>Dashboard y Auditoría - Estación de Servicio Biomax Orquideas</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        body { background-color: #f8f9fa; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        .card { box-shadow: 0 4px 6px rgba(0,0,0,0.1); border: none; margin-bottom: 20px; }
-        .station-logo { max-height: 70px; object-fit: contain; }
+        body { background-color: #f4f6f9; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .card { box-shadow: 0 10px 20px rgba(0,0,0,0.05); border: none; border-radius: 12px; margin-bottom: 20px; }
+        .station-logo { max-height: 75px; object-fit: contain; }
+        .dash-card { background: linear-gradient(135deg, #ffffff, #f8f9fa); border-left: 5px solid #0d6efd; border-radius: 10px; padding: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.03); }
+        
+        .btn-modern-dark { background: linear-gradient(135deg, #2c3e50, #1a252f); color: white; border: none; border-radius: 8px; padding: 10px 20px; font-weight: 600; box-shadow: 0 4px 10px rgba(0,0,0,0.15); transition: all 0.3s; }
+        .btn-modern-dark:hover { background: linear-gradient(135deg, #34495e, #2c3e50); color: #fff; transform: translateY(-2px); }
+        
+        .btn-modern-primary { background: linear-gradient(135deg, #0d6efd, #0b5ed7); color: white; border: none; border-radius: 8px; padding: 10px 20px; font-weight: 600; box-shadow: 0 4px 10px rgba(13,110,253,0.3); transition: all 0.3s; }
+        .btn-modern-primary:hover { background: linear-gradient(135deg, #1b78ff, #0d6efd); color: #fff; transform: translateY(-2px); }
+
+        .btn-modern-success { background: linear-gradient(135deg, #198754, #157347); color: white; border: none; border-radius: 8px; padding: 10px 20px; font-weight: 600; box-shadow: 0 4px 10px rgba(25,135,84,0.3); transition: all 0.3s; }
+        .btn-modern-success:hover { background: linear-gradient(135deg, #20c997, #198754); color: #fff; transform: translateY(-2px); }
+
         @media print {
             body { background-color: #fff; }
             .no-print { display: none !important; }
@@ -18,71 +29,229 @@
 </head>
 <body>
 <div class="container my-5">
-    <!-- ENCABEZADO CON LOGOTIPO, NOMBRE Y VERSIÓN V.1 -->
-    <div class="text-center mb-4 p-3 bg-white shadow-sm rounded border position-relative">
-        <span class="badge bg-secondary position-absolute top-0 end-0 m-3">Versión V.1600</span>
+    <div class="text-center mb-4 p-4 bg-white shadow-sm rounded-4 border-0 position-relative">
+        <span class="badge bg-primary px-3 py-2 rounded-pill position-absolute top-0 end-0 m-3">Versión V.1600</span>
         <img src="logo biomax.png" alt="Logo Biomax" class="station-logo mb-2">
         <h2 class="fw-bold text-primary mb-1">Estación de Servicio Biomax Orquideas</h2>
-        <p class="text-muted mb-0">Módulo de Consulta y Auditoría por Fecha de Ingreso</p>
+        <p class="text-muted mb-0">Dashboard Gerencial y Módulo de Consultas Avanzadas</p>
     </div>
 
-    <!-- BOTÓN PARA REGRESAR AL MÓDULO DE REGISTRO -->
     <div class="mb-4 no-print text-center">
-        <a href="index.html" class="btn btn-outline-primary">← Ir al Módulo de Registro (Arqueos)</a>
+        <a href="Arqueo18_5.html" class="btn btn-modern-dark">← Volver al Módulo de Registro (Arqueos)</a>
     </div>
 
-    <!-- FILTRO DE BÚSQUEDA -->
-    <div class="card p-4 bg-white border no-print">
-        <h5 class="text-secondary border-bottom pb-2">🔍 Consultar Reportes por Fecha de Ingreso</h5>
-        <div class="row g-3 align-items-end">
-            <div class="col-md-4">
-                <label for="filtroFechaIngreso" class="form-label">Seleccione Fecha de Ingreso</label>
-                <input type="date" class="form-control" id="filtroFechaIngreso">
+    <!-- 📊 DASHBOARD GERENCIAL -->
+    <div class="card p-4 bg-white mb-4">
+        <div class="d-flex justify-content-between align-items-center border-bottom pb-3 mb-4 flex-wrap gap-3">
+            <h4 class="text-primary m-0 fw-bold">📈 Dashboard Gerencial</h4>
+            <div class="d-flex align-items-center gap-2">
+                <label class="fw-bold text-muted small">Seleccionar Mes:</label>
+                <input type="month" id="dashMes" class="form-control form-control-sm" onchange="cargarDashboard()">
             </div>
-            <div class="col-md-4">
-                <button type="button" class="btn btn-dark w-100" onclick="consultarPorFechaIngreso()">📊 Generar Reporte</button>
+        </div>
+
+        <div class="row g-3" id="dashboardContainer">
+            <!-- Tarjetas de métricas -->
+        </div>
+    </div>
+
+    <!-- 🔍 FILTROS DE CONSULTA Y REPORTE -->
+    <div class="card p-4 bg-white border-0 no-print">
+        <h5 class="text-secondary border-bottom pb-2 mb-3">🔍 Reportes Avanzados por Mes, Islero y Tipo</h5>
+        <div class="row g-3 align-items-end">
+            <div class="col-md-3">
+                <label class="form-label fw-bold">Mes del Reporte</label>
+                <input type="month" class="form-control" id="filtroMes">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label fw-bold">Islero / Responsable</label>
+                <select class="form-select" id="filtroIslero">
+                    <option value="">-- Todos los Isleros --</option>
+                    <option value="DANILO">DANILO</option>
+                    <option value="ROBINSON">ROBINSON</option>
+                    <option value="CARLOS">CARLOS</option>
+                    <option value="STEFANY">STEFANY</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label fw-bold">Tipo de Reporte</label>
+                <select class="form-select" id="filtroTipo">
+                    <option value="">-- Todos los Tipos --</option>
+                    <option value="ISLERO">ISLERO</option>
+                    <option value="MENSAJERO">MENSAJERO</option>
+                    <option value="AIRE">AIRE</option>
+                    <option value="BAÑO">BAÑO</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <button type="button" class="btn btn-modern-primary w-100" onclick="ejecutarConsultaAvanzada()">📊 Generar Reporte</button>
             </div>
         </div>
     </div>
 
-    <!-- RESULTADOS Y TABLA DE AUDITORÍA -->
-    <div class="card p-4 bg-white border">
+    <!-- TABLA DE RESULTADOS -->
+    <div class="card p-4 bg-white border-0 mt-4">
         <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-3">
-            <h5 class="text-secondary m-0">📋 Detalle de Consignaciones y Valores</h5>
-            <button class="btn btn-success btn-sm no-print" onclick="abrirVentanaImpresion()">🖨️ Imprimir / Ventana Independiente</button>
+            <h5 class="text-secondary m-0 fw-bold">📋 Detalle de Registros</h5>
+            <button class="btn btn-modern-success btn-sm no-print" onclick="window.print()">🖨️ Imprimir / Guardar PDF</button>
         </div>
         <div id="resultadoFiltro">
-            <p class="text-muted text-center py-4">Seleccione una fecha de ingreso y haga clic en "Generar Reporte" para ver los datos.</p>
+            <p class="text-muted text-center py-4">Seleccione los filtros y haga clic en "Generar Reporte".</p>
         </div>
     </div>
 </div>
 
 <script>
-    // URL CENTRALIZADA DE GOOGLE APPS SCRIPT
     const URL_WEB_APP = "https://script.google.com/macros/s/AKfycbwv4HymHYJ6K17WquAoxtHVxKepuEH2vhAOd8iULdlQKs1ZyQ649In4RHyAvRE9zMuu/exec";
 
     document.addEventListener("DOMContentLoaded", function() {
-        document.getElementById('filtroFechaIngreso').valueAsDate = new Date();
-        consultarPorFechaIngreso();
+        const hoy = new Date();
+        const anioMes = hoy.toISOString().substring(0, 7);
+        document.getElementById('dashMes').value = anioMes;
+        document.getElementById('filtroMes').value = anioMes;
+        
+        cargarDashboard();
+        ejecutarConsultaAvanzada();
     });
 
-    function consultarPorFechaIngreso() {
-        const fechaIngreso = document.getElementById('filtroFechaIngreso').value;
-        if (!fechaIngreso) {
-            alert('Por favor seleccione una fecha de ingreso.');
-            return;
-        }
+    function cargarDashboard() {
+        const mesSeleccionado = document.getElementById('dashMes').value;
+        if (!mesSeleccionado) return;
+
+        fetch(URL_WEB_APP + "?modoDashboard=1")
+            .then(res => res.json())
+            .then(data => {
+                if (!data) return;
+
+                const registrosMes = data.filter(r => r.fechaReporte && r.fechaReporte.startsWith(mesSeleccionado));
+
+                let totalVentasMes = 0;
+                let totalConsignacionesMes = 0;
+                let totalRobinsonMes = 0;
+                let totalRobinsonSemana = 0;
+                let totalRobinsonDia = 0;
+                let recaudosIsleros = {};
+
+                let consignacionesBanoMes = 0, consignacionesBanoSemana = 0, consignacionesBanoDia = 0;
+                let consignacionesAireMes = 0, consignacionesAireSemana = 0, consignacionesAireDia = 0;
+
+                const fechaHoyStr = new Date().toISOString().substring(0, 10);
+
+                registrosMes.forEach(r => {
+                    let vta = Number(r.totalVenta) || 0;
+                    let efectivo = Number(r.totalDinero) || 0;
+                    let tipo = r.tipo ? r.tipo.toUpperCase().trim() : "";
+                    let nombre = r.nombre ? r.nombre.toUpperCase().trim() : "";
+
+                    totalVentasMes += vta;
+
+                    if (tipo === "ISLERO") {
+                        recaudosIsleros[nombre] = (recaudosIsleros[nombre] || 0) + efectivo;
+                    } else {
+                        totalConsignacionesMes += efectivo;
+                        if (nombre.includes("ROBINSON")) {
+                            totalRobinsonMes += efectivo;
+                            if (r.fechaReporte === fechaHoyStr) totalRobinsonDia += efectivo;
+                            totalRobinsonSemana += efectivo; 
+                        }
+                        if (tipo === "BAÑO") {
+                            consignacionesBanoMes += efectivo;
+                            if (r.fechaReporte === fechaHoyStr) consignacionesBanoDia += efectivo;
+                            consignacionesBanoSemana += efectivo;
+                        }
+                        if (tipo === "AIRE") {
+                            consignacionesAireMes += efectivo;
+                            if (r.fechaReporte === fechaHoyStr) consignacionesAireDia += efectivo;
+                            consignacionesAireSemana += efectivo;
+                        }
+                    }
+                });
+
+                let islerosHtml = "";
+                for (let islero in recaudosIsleros) {
+                    islerosHtml += `<div><strong>${islero}:</strong> $ ${recaudosIsleros[islero].toLocaleString('es-CO')}</div>`;
+                }
+                if (!islerosHtml) islerosHtml = "<span>Sin registros en el mes</span>";
+
+                let container = document.getElementById('dashboardContainer');
+                container.innerHTML = `
+                    <div class="col-md-4">
+                        <div class="dash-card">
+                            <span class="text-muted small fw-bold">💰 VENTA TOTAL DEL MES</span>
+                            <h3 class="text-primary fw-bold mt-1">$ ${totalVentasMes.toLocaleString('es-CO')}</h3>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="dash-card" style="border-left-color: #198754;">
+                            <span class="text-muted small fw-bold">📥 CONSIGNACIONES TOTALES (MES)</span>
+                            <h3 class="text-success fw-bold mt-1">$ ${totalConsignacionesMes.toLocaleString('es-CO')}</h3>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="dash-card" style="border-left-color: #ffc107;">
+                            <span class="text-muted small fw-bold">👤 CONSIGNACIONES DE ROBINSON</span>
+                            <div class="mt-1 small">
+                                <div><strong>Mes:</strong> $ ${totalRobinsonMes.toLocaleString('es-CO')}</div>
+                                <div><strong>Semana:</strong> $ ${totalRobinsonSemana.toLocaleString('es-CO')}</div>
+                                <div><strong>Día Actual:</strong> $ ${totalRobinsonDia.toLocaleString('es-CO')}</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="dash-card" style="border-left-color: #0dcaf0;">
+                            <span class="text-muted small fw-bold">🧑‍💼 RECAUDO POR ISLERO (MES)</span>
+                            <div class="mt-1 small">${islerosHtml}</div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="dash-card" style="border-left-color: #d63384;">
+                            <span class="text-muted small fw-bold">🚻 CONSIGNACIONES DE BAÑO</span>
+                            <div class="mt-1 small">
+                                <div><strong>Mes:</strong> $ ${consignacionesBanoMes.toLocaleString('es-CO')}</div>
+                                <div><strong>Semana:</strong> $ ${consignacionesBanoSemana.toLocaleString('es-CO')}</div>
+                                <div><strong>Día:</strong> $ ${consignacionesBanoDia.toLocaleString('es-CO')}</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="dash-card" style="border-left-color: #6f42c1;">
+                            <span class="text-muted small fw-bold">💨 CONSIGNACIONES DE AIRE</span>
+                            <div class="mt-1 small">
+                                <div><strong>Mes:</strong> $ ${consignacionesAireMes.toLocaleString('es-CO')}</div>
+                                <div><strong>Semana:</strong> $ ${consignacionesAireSemana.toLocaleString('es-CO')}</div>
+                                <div><strong>Día:</strong> $ ${consignacionesAireDia.toLocaleString('es-CO')}</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+    }
+
+    function ejecutarConsultaAvanzada() {
+        const mesFiltro = document.getElementById('filtroMes').value;
+        const isleroFiltro = document.getElementById('filtroIslero').value;
+        const tipoFiltro = document.getElementById('filtroTipo').value;
 
         const divResultado = document.getElementById('resultadoFiltro');
-        divResultado.innerHTML = `<div class="text-info text-center py-3">Consultando registros para la fecha de ingreso ${fechaIngreso}...</div>`;
+        divResultado.innerHTML = `<div class="text-info text-center py-3">Filtrando registros...</div>`;
 
-        const url = URL_WEB_APP + "?fecha=" + fechaIngreso;
-
-        fetch(url)
+        fetch(URL_WEB_APP + "?modoDashboard=1")
             .then(res => res.json())
             .then(data => {
                 if (!data || data.length === 0) {
-                    divResultado.innerHTML = `<div class="alert alert-warning text-center mt-3">No se encontraron registros ingresados en la fecha: ${fechaIngreso}</div>`;
+                    divResultado.innerHTML = `<div class="alert alert-warning text-center mt-3">No hay registros almacenados.</div>`;
+                    return;
+                }
+
+                let filtrados = data.filter(row => {
+                    let cumpleMes = mesFiltro ? (row.fechaReporte && row.fechaReporte.startsWith(mesFiltro)) : true;
+                    let cumpleIslero = isleroFiltro ? (row.nombre === isleroFiltro) : true;
+                    let cumpleTipo = tipoFiltro ? (row.tipo === tipoFiltro) : true;
+                    return cumpleMes && cumpleIslero && cumpleTipo;
+                });
+
+                if (filtrados.length === 0) {
+                    divResultado.innerHTML = `<div class="alert alert-warning text-center mt-3">No se encontraron registros con los filtros seleccionados.</div>`;
                     return;
                 }
 
@@ -91,66 +260,50 @@
                         <table class="table table-bordered table-striped table-sm align-middle">
                             <thead class="table-dark text-center">
                                 <tr>
-                                    <th>Nombre del Responsable</th>
-                                    <th>Fecha de Reporte</th>
+                                    <th>Nombre</th>
+                                    <th>Fecha Reporte</th>
                                     <th>Tipo</th>
-                                    <th>Efectivo (Billetes + Monedas)</th>
-                                    <th>Créditos / Vales</th>
+                                    <th>Total Venta</th>
+                                    <th>Efectivo</th>
+                                    <th>Créditos</th>
                                     <th>Datáfono</th>
                                     <th>Aditivos</th>
-                                    <th>Estado / Cuadre</th>
+                                    <th>Cuadre</th>
                                 </tr>
                             </thead>
                             <tbody>
                 `;
 
-                let sumaEfectivo = 0;
-                let sumaCreditos = 0;
-                let sumaDatafono = 0;
-                let sumaAditivos = 0;
+                let sumaVentas = 0, sumaEfectivo = 0, sumaCreditos = 0, sumaDatafono = 0, sumaAditivos = 0;
 
-                data.forEach(row => {
-                    let totalEfectivo = Number(row.totalDinero) || 0;
-                    let totalCreditos = Number(row.totalCreditos) || 0;
-                    let totalDatafono = Number(row.totalDatafono) || 0;
-                    let totalAditivos = Number(row.totalAditivos) || 0;
+                filtrados.forEach(row => {
+                    let vta = Number(row.totalVenta) || 0;
+                    let efec = Number(row.totalDinero) || 0;
+                    let cred = Number(row.totalCreditos) || 0;
+                    let dataf = Number(row.totalDatafono) || 0;
+                    let adit = Number(row.totalAditivos) || 0;
                     let dif = Number(row.diferencia) || 0;
-                    let tipoReporte = row.tipo ? row.tipo.toUpperCase().trim() : "ISLERO";
+                    let tipo = row.tipo || "";
 
-                    // Si es Islero se suma, si es Mensajero/Aire/Baño se resta del total general
-                    if (tipoReporte === "ISLERO") {
-                        sumaEfectivo += totalEfectivo;
-                    } else {
-                        sumaEfectivo -= totalEfectivo;
-                    }
+                    sumaVentas += vta;
+                    sumaEfectivo += efec;
+                    sumaCreditos += cred;
+                    sumaDatafono += dataf;
+                    sumaAditivos += adit;
 
-                    sumaCreditos += totalCreditos;
-                    sumaDatafono += totalDatafono;
-                    sumaAditivos += totalAditivos;
-
-                    let estadoBadge = '';
-                    if (tipoReporte === "ISLERO") {
-                        if (dif === 0) {
-                            estadoBadge = '<span class="badge bg-success">Cuadrado ($0)</span>';
-                        } else if (dif > 0) {
-                            estadoBadge = `<span class="badge bg-primary">Sobrante (+$${dif.toLocaleString('es-CO')})</span>`;
-                        } else {
-                            estadoBadge = `<span class="badge bg-danger">Faltante ($${dif.toLocaleString('es-CO')})</span>`;
-                        }
-                    } else {
-                        estadoBadge = '<span class="badge bg-success">Cuadrado ($0)</span>';
-                    }
+                    let badge = tipo === "ISLERO" ? (dif === 0 ? '<span class="badge bg-success">Cuadrado</span>' : (dif > 0 ? `<span class="badge bg-primary">+${dif.toLocaleString()}` : `<span class="badge bg-danger">${dif.toLocaleString()}`)) : '<span class="badge bg-success">Consignación</span>';
 
                     html += `
                         <tr>
                             <td class="fw-bold">${row.nombre}</td>
                             <td class="text-center">${row.fechaReporte}</td>
-                            <td class="text-center text-uppercase">${tipoReporte}</td>
-                            <td class="text-end text-success fw-bold">$ ${totalEfectivo.toLocaleString('es-CO')}</td>
-                            <td class="text-end">$ ${totalCreditos.toLocaleString('es-CO')}</td>
-                            <td class="text-end">$ ${totalDatafono.toLocaleString('es-CO')}</td>
-                            <td class="text-end">$ ${totalAditivos.toLocaleString('es-CO')}</td>
-                            <td class="text-center">${estadoBadge}</td>
+                            <td class="text-center text-uppercase">${tipo}</td>
+                            <td class="text-end">$ ${vta.toLocaleString('es-CO')}</td>
+                            <td class="text-end text-success fw-bold">$ ${efec.toLocaleString('es-CO')}</td>
+                            <td class="text-end">$ ${cred.toLocaleString('es-CO')}</td>
+                            <td class="text-end">$ ${dataf.toLocaleString('es-CO')}</td>
+                            <td class="text-end">$ ${adit.toLocaleString('es-CO')}</td>
+                            <td class="text-center">${badge}</td>
                         </tr>
                     `;
                 });
@@ -159,7 +312,8 @@
                             </tbody>
                             <tfoot class="table-secondary fw-bold">
                                 <tr>
-                                    <td colspan="3" class="text-end">TOTALES GENERALES:</td>
+                                    <td colspan="3" class="text-end">TOTALES:</td>
+                                    <td class="text-end">$ ${sumaVentas.toLocaleString('es-CO')}</td>
                                     <td class="text-end text-success">$ ${sumaEfectivo.toLocaleString('es-CO')}</td>
                                     <td class="text-end">$ ${sumaCreditos.toLocaleString('es-CO')}</td>
                                     <td class="text-end">$ ${sumaDatafono.toLocaleString('es-CO')}</td>
@@ -172,37 +326,7 @@
                 `;
                 divResultado.innerHTML = html;
             })
-            .catch(err => {
-                divResultado.innerHTML = `<div class="alert alert-danger text-center mt-3">Error al consultar los datos: ${err}</div>`;
-            });
-    }
-
-    function abrirVentanaImpresion() {
-        const contenido = document.getElementById('resultadoFiltro').innerHTML;
-        const fechaIngreso = document.getElementById('filtroFechaIngreso').value;
-        const ventana = window.open('', '_blank', 'width=1000,height=700');
-        ventana.document.write(`
-            <html>
-                <head>
-                    <title>Reporte y Auditoría - Fecha de Ingreso: ${fechaIngreso}</title>
-                    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-                </head>
-                <body class="p-4">
-                    <div class="text-center mb-3">
-                        <span class="badge bg-secondary float-end">Versión V.1</span>
-                        <img src="logo biomax.png" alt="Logo Biomax" style="max-height: 60px;">
-                        <h3 class="text-primary mt-1">Estación de Servicio Biomax Orquideas</h3>
-                        <h5 class="text-muted">Consolidado y Auditoría - Fecha de Ingreso: ${fechaIngreso}</h5>
-                    </div>
-                    <hr>
-                    ${contenido}
-                    <script>
-                        window.onload = function() { window.print(); }
-                    <\/script>
-                </body>
-            </html>
-        `);
-        ventana.document.close();
+            .catch(err => { divResultado.innerHTML = `<div class="alert alert-danger text-center">Error: ${err}</div>`; });
     }
 </script>
 </body>
