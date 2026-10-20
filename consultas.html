@@ -30,7 +30,7 @@
 <body>
 <div class="container my-5">
     <div class="text-center mb-4 p-4 bg-white shadow-sm rounded-4 border-0 position-relative">
-        <span class="badge bg-primary px-3 py-2 rounded-pill position-absolute top-0 end-0 m-3">Versión V.1700</span>
+        <span class="badge bg-primary px-3 py-2 rounded-pill position-absolute top-0 end-0 m-3">Versión V.1730</span>
         <img src="logo biomax.png" alt="Logo Biomax" class="station-logo mb-2">
         <h2 class="fw-bold text-primary mb-1">Estación de Servicio Biomax Orquideas</h2>
         <p class="text-muted mb-0">Dashboard Gerencial, Desglose de Consignaciones y Consultas por Fecha de Ingreso</p>
@@ -66,17 +66,17 @@
         </div>
     </div>
 
-    <!-- PANEL DE VALIDACIÓN DE CAJA EXACTO -->
+    <!-- PANEL DE VALIDACIÓN ESTRICTO POR FECHA DE INGRESO -->
     <div class="card p-4 bg-white border-0 mt-4" id="seccionValidacionCaja" style="display:none;">
-        <h5 class="text-success border-bottom pb-2 mb-3 fw-bold">⚖️ Validación de Efectivo (Isleros + Aire + Baño vs Robinson)</h5>
+        <h5 class="text-success border-bottom pb-2 mb-3 fw-bold">⚖️ Validación de Efectivo por Fecha de Ingreso</h5>
         <div class="row g-3">
             <div class="col-md-4">
                 <div class="p-3 bg-light rounded border h-100">
-                    <span class="text-muted small fw-bold">ENTRADAS TOTALES (ISLEROS + AIRE + BAÑO)</span>
+                    <span class="text-muted small fw-bold">ENTRADAS ISLEROS (FECHA INGRESO)</span>
                     <div class="mt-2" id="desgloseEntradasContainer"></div>
                     <hr class="my-2">
                     <div class="d-flex justify-content-between fw-bold text-primary">
-                        <span>Total Entradas:</span>
+                        <span>Total Isleros:</span>
                         <span id="valTotalEntradas">$ 0</span>
                     </div>
                 </div>
@@ -85,14 +85,14 @@
                 <div class="p-3 bg-light rounded border h-100">
                     <span class="text-muted small fw-bold">CONSIGNADO POR ROBINSON (MENSAJERO)</span>
                     <h4 class="text-success fw-bold mt-2" id="valTotalRobinson">$ 0</h4>
-                    <p class="text-muted small mt-2">Monto recolectado y consignado por el mensajero en esta fecha de ingreso.</p>
+                    <p class="text-muted small mt-2">Monto recolectado y consignado por el mensajero ingresado en esta misma fecha.</p>
                 </div>
             </div>
             <div class="col-md-4">
                 <div class="p-3 bg-light rounded border h-100">
                     <span class="text-muted small fw-bold">ESTADO DE CUADRE (DIFERENCIA)</span>
                     <h4 class="fw-bold mt-2" id="valEstadoCuadre">$ 0</h4>
-                    <p class="text-muted small mt-2">Resultado de restar la consignación de Robinson a las entradas totales.</p>
+                    <p class="text-muted small mt-2">Resultado de restar la consignación de Robinson a las entradas de los isleros del día.</p>
                 </div>
             </div>
         </div>
@@ -210,7 +210,7 @@
                     return;
                 }
 
-                let totalEntradas = 0;
+                let totalEntradasIsleros = 0;
                 let totalRobinson = 0;
                 let desgloseEntradasHtml = "";
 
@@ -219,12 +219,12 @@
                     let tipo = row.tipo ? row.tipo.toUpperCase().trim() : "";
                     let nombre = row.nombre ? row.nombre.toUpperCase().trim() : "";
 
-                    if (tipo === "ISLERO" || tipo === "AIRE" || tipo === "BAÑO") {
-                        totalEntradas += efectivo;
-                        let etiqueta = tipo === "ISLERO" ? `Islero (${nombre})` : `${tipo} (${nombre})`;
+                    // Solo sumamos los ISLERO para la validación estricta de la fecha de ingreso seleccionada
+                    if (tipo === "ISLERO") {
+                        totalEntradasIsleros += efectivo;
                         desgloseEntradasHtml += `
                             <div class="d-flex justify-content-between small mb-1">
-                                <span class="fw-semibold text-secondary">${etiqueta}:</span>
+                                <span class="fw-semibold text-secondary">Islero (${nombre}):</span>
                                 <span class="fw-bold">$ ${efectivo.toLocaleString('es-CO')}</span>
                             </div>
                         `;
@@ -233,14 +233,14 @@
                     }
                 });
 
-                if (!desgloseEntradasHtml) desgloseEntradasHtml = '<span class="text-muted small">Sin entradas registradas</span>';
+                if (!desgloseEntradasHtml) desgloseEntradasHtml = '<span class="text-muted small">Sin isleros registrados en esta fecha</span>';
 
                 document.getElementById('desgloseEntradasContainer').innerHTML = desgloseEntradasHtml;
-                document.getElementById('valTotalEntradas').innerText = `$ ${totalEntradas.toLocaleString('es-CO')}`;
+                document.getElementById('valTotalEntradas').innerText = `$ ${totalEntradasIsleros.toLocaleString('es-CO')}`;
                 document.getElementById('valTotalRobinson').innerText = `$ ${totalRobinson.toLocaleString('es-CO')}`;
 
-                // Validación: Entradas Totales - Consignación Robinson = Diferencia de Cuadre
-                let diferenciaCuadre = totalRobinson - totalEntradas;
+                // Validación: Total Isleros - Consignación Robinson = Diferencia
+                let diferenciaCuadre = totalEntradasIsleros - totalRobinson;
                 let lblCuadre = document.getElementById('valEstadoCuadre');
                 lblCuadre.innerText = `$ ${Math.abs(diferenciaCuadre).toLocaleString('es-CO')}`;
 
@@ -248,7 +248,7 @@
                     lblCuadre.className = "fw-bold mt-2 text-success";
                     lblCuadre.innerText += " (CUADRADO EXACTO)";
                 } else if (diferenciaCuadre > 0) {
-                    lblCuadre.className = "fw-bold mt-2 text-primary";
+                    lblCuadre.className = "fw-bold mt-2 text-warning";
                     lblCuadre.innerText += " (SOBRANTE)";
                 } else if (totalRobinson === 0) {
                     lblCuadre.className = "fw-bold mt-2 text-muted";
