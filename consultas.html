@@ -30,14 +30,14 @@
 <body>
 <div class="container my-5">
     <div class="text-center mb-4 p-4 bg-white shadow-sm rounded-4 border-0 position-relative">
-        <span class="badge bg-primary px-3 py-2 rounded-pill position-absolute top-0 end-0 m-3">Versión V.1650</span>
+        <span class="badge bg-primary px-3 py-2 rounded-pill position-absolute top-0 end-0 m-3">Versión V.1660</span>
         <img src="logo biomax.png" alt="Logo Biomax" class="station-logo mb-2">
         <h2 class="fw-bold text-primary mb-1">Estación de Servicio Biomax Orquideas</h2>
         <p class="text-muted mb-0">Dashboard Gerencial, Desglose de Consignaciones y Consultas por Fecha de Ingreso</p>
     </div>
 
     <div class="mb-4 no-print text-center">
-        <a href="index.html" class="btn btn-modern-dark">← Volver al Módulo de Registro (Arqueos)</a>
+        <a href="Arqueo19.html" class="btn btn-modern-dark">← Volver al Módulo de Registro (Arqueos)</a>
     </div>
 
     <!-- 📊 DASHBOARD GERENCIAL -->
@@ -66,26 +66,33 @@
         </div>
     </div>
 
-    <!-- PANEL DE VALIDACIÓN DE CAJA (ISLEROS VS ROBINSON) -->
+    <!-- PANEL DE VALIDACIÓN DE CAJA EXACTO -->
     <div class="card p-4 bg-white border-0 mt-4" id="seccionValidacionCaja" style="display:none;">
-        <h5 class="text-success border-bottom pb-2 mb-3 fw-bold">⚖️ Validación de Caja por Fecha de Ingreso</h5>
+        <h5 class="text-success border-bottom pb-2 mb-3 fw-bold">⚖️ Validación de Efectivo (Isleros + Aire + Baño vs Robinson)</h5>
         <div class="row g-3">
             <div class="col-md-4">
-                <div class="p-3 bg-light rounded border">
-                    <span class="text-muted small fw-bold">TOTAL EFECTIVO ISLEROS</span>
-                    <h4 class="text-primary fw-bold mt-1" id="valTotalIsleros">$ 0</h4>
+                <div class="p-3 bg-light rounded border h-100">
+                    <span class="text-muted small fw-bold">ENTRADAS TOTALES (ISLEROS + AIRE + BAÑO)</span>
+                    <div class="mt-2" id="desgloseEntradasContainer"></div>
+                    <hr class="my-2">
+                    <div class="d-flex justify-content-between fw-bold text-primary">
+                        <span>Total Entradas:</span>
+                        <span id="valTotalEntradas">$ 0</span>
+                    </div>
                 </div>
             </div>
             <div class="col-md-4">
-                <div class="p-3 bg-light rounded border">
+                <div class="p-3 bg-light rounded border h-100">
                     <span class="text-muted small fw-bold">CONSIGNADO POR ROBINSON (MENSAJERO)</span>
-                    <h4 class="text-success fw-bold mt-1" id="valTotalRobinson">$ 0</h4>
+                    <h4 class="text-success fw-bold mt-2" id="valTotalRobinson">$ 0</h4>
+                    <p class="text-muted small mt-2">Monto recolectado y consignado por el mensajero en esta fecha de ingreso.</p>
                 </div>
             </div>
             <div class="col-md-4">
-                <div class="p-3 bg-light rounded border">
-                    <span class="text-muted small fw-bold">ESTADO DE CUADRE GENERAL</span>
-                    <h4 class="fw-bold mt-1" id="valEstadoCuadre">$ 0</h4>
+                <div class="p-3 bg-light rounded border h-100">
+                    <span class="text-muted small fw-bold">ESTADO DE CUADRE (DIFERENCIA)</span>
+                    <h4 class="fw-bold mt-2" id="valEstadoCuadre">$ 0</h4>
+                    <p class="text-muted small mt-2">Resultado de restar la consignación de Robinson a las entradas totales.</p>
                 </div>
             </div>
         </div>
@@ -104,7 +111,7 @@
 </div>
 
 <script>
-    const URL_WEB_APP = "https://script.google.com/macros/s/AKfycbxgA2g69VY9Lt79kAyZmYzsRH-3nAoabSQTduMHQ6AbEKGtRz3fOS7tvmOUu05ZJeOv/exec";
+    const URL_WEB_APP = "https://script.google.com/macros/s/AKfycbyYuCEa9aFRbggbGlN2okgP6VhecXQgu79HsMIP0W5JgBp9S3wrAbyyR1nRiFYP44MH/exec";
 
     document.addEventListener("DOMContentLoaded", function() {
         const hoy = new Date();
@@ -203,40 +210,51 @@
                     return;
                 }
 
-                let totalEfectivoIsleros = 0;
-                let totalConsignadoRobinson = 0;
+                let totalEntradas = 0;
+                let totalRobinson = 0;
+                let desgloseEntradasHtml = "";
 
                 data.forEach(row => {
                     let efectivo = Number(row.totalDinero) || 0;
                     let tipo = row.tipo ? row.tipo.toUpperCase().trim() : "";
                     let nombre = row.nombre ? row.nombre.toUpperCase().trim() : "";
 
-                    if (tipo === "ISLERO") {
-                        totalEfectivoIsleros += efectivo;
+                    if (tipo === "ISLERO" || tipo === "AIRE" || tipo === "BAÑO") {
+                        totalEntradas += efectivo;
+                        let etiqueta = tipo === "ISLERO" ? `Islero (${nombre})` : `${tipo} (${nombre})`;
+                        desgloseEntradasHtml += `
+                            <div class="d-flex justify-content-between small mb-1">
+                                <span class="fw-semibold text-secondary">${etiqueta}:</span>
+                                <span class="fw-bold">$ ${efectivo.toLocaleString('es-CO')}</span>
+                            </div>
+                        `;
                     } else if (tipo === "MENSAJERO" && nombre.includes("ROBINSON")) {
-                        totalConsignadoRobinson += efectivo;
+                        totalRobinson += efectivo;
                     }
                 });
 
-                // Mostrar panel de validación de caja
-                document.getElementById('valTotalIsleros').innerText = `$ ${totalEfectivoIsleros.toLocaleString('es-CO')}`;
-                document.getElementById('valTotalRobinson').innerText = `$ ${totalConsignadoRobinson.toLocaleString('es-CO')}`;
+                if (!desgloseEntradasHtml) desgloseEntradasHtml = '<span class="text-muted small">Sin entradas registradas</span>';
 
-                let diferenciaCuadre = totalConsignadoRobinson - totalEfectivoIsleros;
+                document.getElementById('desgloseEntradasContainer').innerHTML = desgloseEntradasHtml;
+                document.getElementById('valTotalEntradas').innerText = `$ ${totalEntradas.toLocaleString('es-CO')}`;
+                document.getElementById('valTotalRobinson').innerText = `$ ${totalRobinson.toLocaleString('es-CO')}`;
+
+                // Validación: Entradas Totales - Consignación Robinson = Diferencia de Cuadre
+                let diferenciaCuadre = totalRobinson - totalEntradas;
                 let lblCuadre = document.getElementById('valEstadoCuadre');
                 lblCuadre.innerText = `$ ${Math.abs(diferenciaCuadre).toLocaleString('es-CO')}`;
 
-                if (diferenciaCuadre === 0 && totalConsignadoRobinson > 0) {
-                    lblCuadre.className = "fw-bold mt-1 text-success";
+                if (diferenciaCuadre === 0 && totalRobinson > 0) {
+                    lblCuadre.className = "fw-bold mt-2 text-success";
                     lblCuadre.innerText += " (CUADRADO EXACTO)";
                 } else if (diferenciaCuadre > 0) {
-                    lblCuadre.className = "fw-bold mt-1 text-primary";
+                    lblCuadre.className = "fw-bold mt-2 text-primary";
                     lblCuadre.innerText += " (SOBRANTE)";
-                } else if (totalConsignadoRobinson === 0) {
-                    lblCuadre.className = "fw-bold mt-1 text-muted";
+                } else if (totalRobinson === 0) {
+                    lblCuadre.className = "fw-bold mt-2 text-muted";
                     lblCuadre.innerText = "Falta registrar consignación de Robinson";
                 } else {
-                    lblCuadre.className = "fw-bold mt-1 text-danger";
+                    lblCuadre.className = "fw-bold mt-2 text-danger";
                     lblCuadre.innerText += " (FALTANTE)";
                 }
                 seccionVal.style.display = 'block';
@@ -278,7 +296,7 @@
                     sumaDatafono += dataf;
                     sumaAditivos += adit;
 
-                    let badge = tipo === "ISLERO" ? (dif === 0 ? '<span class="badge bg-success">Cuadrado</span>' : (dif > 0 ? `<span class="badge bg-primary">+${dif.toLocaleString()}` : `<span class="badge bg-danger">${dif.toLocaleString()}`)) : '<span class="badge bg-success">Consignación Registrada</span>';
+                    let badge = tipo === "ISLERO" ? (dif === 0 ? '<span class="badge bg-success">Cuadrado</span>' : (dif > 0 ? `<span class="badge bg-primary">+${dif.toLocaleString()}` : `<span class="badge bg-danger">${dif.toLocaleString()}`)) : '<span class="badge bg-success">Registrado</span>';
 
                     html += `
                         <tr>
