@@ -85,7 +85,7 @@
                 <div class="p-3 bg-light rounded border h-100">
                     <span class="text-muted small fw-bold">CONSIGNADO POR ROBINSON (MENSAJERO)</span>
                     <h4 class="text-success fw-bold mt-2" id="valTotalRobinson">$ 0</h4>
-                    <p class="text-muted small mt-2">Monto recolectado y consignado por el mensajero ingresado en esta fecha.</p>
+                    <p class="text-muted small mt-2">Monto recolectado y consignado por el mensajero en esta fecha de ingreso.</p>
                 </div>
             </div>
             <div class="col-md-4">
@@ -219,7 +219,7 @@
                     let tipo = row.tipo ? row.tipo.toUpperCase().trim() : "";
                     let nombre = row.nombre ? row.nombre.toUpperCase().trim() : "";
 
-                    // Sumamos Isleros, Aire y Baño que tengan esta misma fecha de ingreso
+                    // Sumamos todo lo que aparece en la tabla con esta Fecha de Ingreso (Isleros + Aire + Baño)
                     if (tipo === "ISLERO" || tipo === "AIRE" || tipo === "BAÑO") {
                         totalEntradas += efectivo;
                         let etiqueta = tipo === "ISLERO" ? `Islero (${nombre})` : `${tipo} (${nombre})`;
@@ -234,13 +234,13 @@
                     }
                 });
 
-                if (!desgloseEntradasHtml) desgloseEntradasHtml = '<span class="text-muted small">Sin entradas registradas en esta fecha</span>';
+                if (!desgloseEntradasHtml) desgloseEntradasHtml = '<span class="text-muted small">Sin entradas registradas</span>';
 
                 document.getElementById('desgloseEntradasContainer').innerHTML = desgloseEntradasHtml;
                 document.getElementById('valTotalEntradas').innerText = `$ ${totalEntradas.toLocaleString('es-CO')}`;
                 document.getElementById('valTotalRobinson').innerText = `$ ${totalRobinson.toLocaleString('es-CO')}`;
 
-                // Validación exacta: Total Entradas (Isleros+Aire+Baño) - Consignación Robinson = Diferencia
+                // Validación exacta: Total Entradas (Isleros + Aire + Baño) - Consignación Robinson = Diferencia
                 let diferenciaCuadre = totalEntradas - totalRobinson;
                 let lblCuadre = document.getElementById('valEstadoCuadre');
                 lblCuadre.innerText = `$ ${Math.abs(diferenciaCuadre).toLocaleString('es-CO')}`;
