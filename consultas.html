@@ -30,10 +30,10 @@
 <body>
 <div class="container my-5">
     <div class="text-center mb-4 p-4 bg-white shadow-sm rounded-4 border-0 position-relative">
-        <span class="badge bg-primary px-3 py-2 rounded-pill position-absolute top-0 end-0 m-3">Versión V.1000</span>
+        <span class="badge bg-primary px-3 py-2 rounded-pill position-absolute top-0 end-0 m-3">Versión V.1600</span>
         <img src="logo biomax.png" alt="Logo Biomax" class="station-logo mb-2">
         <h2 class="fw-bold text-primary mb-1">Estación de Servicio Biomax Orquideas</h2>
-        <p class="text-muted mb-0">Dashboard Gerencial y Módulo de Consultas Avanzadas</p>
+        <p class="text-muted mb-0">Dashboard Gerencial, Desglose de Consignaciones y Consultas</p>
     </div>
 
     <div class="mb-4 no-print text-center">
@@ -49,28 +49,26 @@
                 <input type="month" id="dashMes" class="form-control form-control-sm" onchange="cargarDashboard()">
             </div>
         </div>
-
-        <div class="row g-3" id="dashboardContainer">
-            <!-- Tarjetas de métricas -->
-        </div>
+        <div class="row g-3" id="dashboardContainer"></div>
     </div>
 
-    <!-- 🔍 FILTROS DE CONSULTA Y REPORTE -->
+    <!-- 🔍 FILTROS DE CONSULTA Y DESGLOSE -->
     <div class="card p-4 bg-white border-0 no-print">
-        <h5 class="text-secondary border-bottom pb-2 mb-3">🔍 Reportes Avanzados por Mes, Islero y Tipo</h5>
+        <h5 class="text-secondary border-bottom pb-2 mb-3">🔍 Informe de Desglose de Consignaciones y Ventas</h5>
         <div class="row g-3 align-items-end">
             <div class="col-md-3">
-                <label class="form-label fw-bold">Mes del Reporte</label>
+                <label class="form-label fw-bold">Mes o Fecha del Reporte</label>
                 <input type="month" class="form-control" id="filtroMes">
             </div>
             <div class="col-md-3">
                 <label class="form-label fw-bold">Islero / Responsable</label>
                 <select class="form-select" id="filtroIslero">
-                    <option value="">-- Todos los Isleros --</option>
+                    <option value="">-- Todos los Responsables --</option>
                     <option value="DANILO">DANILO</option>
                     <option value="ROBINSON">ROBINSON</option>
                     <option value="CARLOS">CARLOS</option>
                     <option value="STEFANY">STEFANY</option>
+                    <option value="VICENTE">VICENTE</option>
                 </select>
             </div>
             <div class="col-md-3">
@@ -84,25 +82,42 @@
                 </select>
             </div>
             <div class="col-md-3">
-                <button type="button" class="btn btn-modern-primary w-100" onclick="ejecutarConsultaAvanzada()">📊 Generar Reporte</button>
+                <button type="button" class="btn btn-modern-primary w-100" onclick="ejecutarConsultaAvanzada()">📊 Generar Informe y Desglose</button>
             </div>
         </div>
     </div>
 
-    <!-- TABLA DE RESULTADOS -->
+    <!-- SECCIÓN DE DESGLOSE RESUMIDO POR PERSONA -->
+    <div class="card p-4 bg-white border-0 mt-4" id="seccionDesgloseResumen" style="display:none;">
+        <h5 class="text-success border-bottom pb-2 mb-3 fw-bold">📌 Desglose Total Consignado / Efectivo por Responsable</h5>
+        <div class="table-responsive">
+            <table class="table table-bordered table-sm align-middle" id="tablaDesgloseResumen">
+                <thead class="table-success text-center">
+                    <tr>
+                        <th>Responsable / Islero</th>
+                        <th>Tipo</th>
+                        <th>Total Efectivo / Consignado ($)</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- TABLA DE DETALLE DE REGISTROS -->
     <div class="card p-4 bg-white border-0 mt-4">
         <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-3">
-            <h5 class="text-secondary m-0 fw-bold">📋 Detalle de Registros</h5>
+            <h5 class="text-secondary m-0 fw-bold">📋 Detalle Completo de Registros</h5>
             <button class="btn btn-modern-success btn-sm no-print" onclick="window.print()">🖨️ Imprimir / Guardar PDF</button>
         </div>
         <div id="resultadoFiltro">
-            <p class="text-muted text-center py-4">Seleccione los filtros y haga clic en "Generar Reporte".</p>
+            <p class="text-muted text-center py-4">Seleccione los filtros y haga clic en "Generar Informe y Desglose".</p>
         </div>
     </div>
 </div>
 
 <script>
-    const URL_WEB_APP = "https://script.google.com/macros/s/AKfycbzMJXcsa2FRVY5MbqGyeFNnlwbbgW2OqJDIjfqfq14upoxIcXjMAKQ3lTR_ULgWvF8/exec";
+    const URL_WEB_APP = "https://script.google.com/macros/s/AKfycbwv4HymHYJ6K17WquAoxtHVxKepuEH2vhAOd8iULdlQKs1ZyQ649In4RHyAvRE9zMuu/exec";
 
     document.addEventListener("DOMContentLoaded", function() {
         const hoy = new Date();
@@ -122,20 +137,12 @@
             .then(res => res.json())
             .then(data => {
                 if (!data) return;
-
                 const registrosMes = data.filter(r => r.fechaReporte && r.fechaReporte.startsWith(mesSeleccionado));
 
                 let totalVentasMes = 0;
                 let totalConsignacionesMes = 0;
                 let totalRobinsonMes = 0;
-                let totalRobinsonSemana = 0;
-                let totalRobinsonDia = 0;
                 let recaudosIsleros = {};
-
-                let consignacionesBanoMes = 0, consignacionesBanoSemana = 0, consignacionesBanoDia = 0;
-                let consignacionesAireMes = 0, consignacionesAireSemana = 0, consignacionesAireDia = 0;
-
-                const fechaHoyStr = new Date().toISOString().substring(0, 10);
 
                 registrosMes.forEach(r => {
                     let vta = Number(r.totalVenta) || 0;
@@ -144,25 +151,12 @@
                     let nombre = r.nombre ? r.nombre.toUpperCase().trim() : "";
 
                     totalVentasMes += vta;
-
                     if (tipo === "ISLERO") {
                         recaudosIsleros[nombre] = (recaudosIsleros[nombre] || 0) + efectivo;
                     } else {
                         totalConsignacionesMes += efectivo;
                         if (nombre.includes("ROBINSON")) {
                             totalRobinsonMes += efectivo;
-                            if (r.fechaReporte === fechaHoyStr) totalRobinsonDia += efectivo;
-                            totalRobinsonSemana += efectivo; 
-                        }
-                        if (tipo === "BAÑO") {
-                            consignacionesBanoMes += efectivo;
-                            if (r.fechaReporte === fechaHoyStr) consignacionesBanoDia += efectivo;
-                            consignacionesBanoSemana += efectivo;
-                        }
-                        if (tipo === "AIRE") {
-                            consignacionesAireMes += efectivo;
-                            if (r.fechaReporte === fechaHoyStr) consignacionesAireDia += efectivo;
-                            consignacionesAireSemana += efectivo;
                         }
                     }
                 });
@@ -173,8 +167,7 @@
                 }
                 if (!islerosHtml) islerosHtml = "<span>Sin registros en el mes</span>";
 
-                let container = document.getElementById('dashboardContainer');
-                container.innerHTML = `
+                document.getElementById('dashboardContainer').innerHTML = `
                     <div class="col-md-4">
                         <div class="dash-card">
                             <span class="text-muted small fw-bold">💰 VENTA TOTAL DEL MES</span>
@@ -190,37 +183,13 @@
                     <div class="col-md-4">
                         <div class="dash-card" style="border-left-color: #ffc107;">
                             <span class="text-muted small fw-bold">👤 CONSIGNACIONES DE ROBINSON</span>
-                            <div class="mt-1 small">
-                                <div><strong>Mes:</strong> $ ${totalRobinsonMes.toLocaleString('es-CO')}</div>
-                                <div><strong>Semana:</strong> $ ${totalRobinsonSemana.toLocaleString('es-CO')}</div>
-                                <div><strong>Día Actual:</strong> $ ${totalRobinsonDia.toLocaleString('es-CO')}</div>
-                            </div>
+                            <h3 class="text-warning fw-bold mt-1">$ ${totalRobinsonMes.toLocaleString('es-CO')}</h3>
                         </div>
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-12">
                         <div class="dash-card" style="border-left-color: #0dcaf0;">
-                            <span class="text-muted small fw-bold">🧑‍💼 RECAUDO POR ISLERO (MES)</span>
-                            <div class="mt-1 small">${islerosHtml}</div>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="dash-card" style="border-left-color: #d63384;">
-                            <span class="text-muted small fw-bold">🚻 CONSIGNACIONES DE BAÑO</span>
-                            <div class="mt-1 small">
-                                <div><strong>Mes:</strong> $ ${consignacionesBanoMes.toLocaleString('es-CO')}</div>
-                                <div><strong>Semana:</strong> $ ${consignacionesBanoSemana.toLocaleString('es-CO')}</div>
-                                <div><strong>Día:</strong> $ ${consignacionesBanoDia.toLocaleString('es-CO')}</div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="dash-card" style="border-left-color: #6f42c1;">
-                            <span class="text-muted small fw-bold">💨 CONSIGNACIONES DE AIRE</span>
-                            <div class="mt-1 small">
-                                <div><strong>Mes:</strong> $ ${consignacionesAireMes.toLocaleString('es-CO')}</div>
-                                <div><strong>Semana:</strong> $ ${consignacionesAireSemana.toLocaleString('es-CO')}</div>
-                                <div><strong>Día:</strong> $ ${consignacionesAireDia.toLocaleString('es-CO')}</div>
-                            </div>
+                            <span class="text-muted small fw-bold">🧑‍💼 RECAUDO DETALLADO POR ISLERO (MES)</span>
+                            <div class="mt-2 d-flex flex-wrap gap-4">${islerosHtml}</div>
                         </div>
                     </div>
                 `;
@@ -233,13 +202,15 @@
         const tipoFiltro = document.getElementById('filtroTipo').value;
 
         const divResultado = document.getElementById('resultadoFiltro');
-        divResultado.innerHTML = `<div class="text-info text-center py-3">Filtrando registros...</div>`;
+        const seccionResumen = document.getElementById('seccionDesgloseResumen');
+        divResultado.innerHTML = `<div class="text-info text-center py-3">Generando informe y desglose...</div>`;
 
         fetch(URL_WEB_APP + "?modoDashboard=1")
             .then(res => res.json())
             .then(data => {
                 if (!data || data.length === 0) {
                     divResultado.innerHTML = `<div class="alert alert-warning text-center mt-3">No hay registros almacenados.</div>`;
+                    seccionResumen.style.display = 'none';
                     return;
                 }
 
@@ -252,9 +223,48 @@
 
                 if (filtrados.length === 0) {
                     divResultado.innerHTML = `<div class="alert alert-warning text-center mt-3">No se encontraron registros con los filtros seleccionados.</div>`;
+                    seccionResumen.style.display = 'none';
                     return;
                 }
 
+                // Agrupar para el desglose resumido por persona/islero
+                let resumenPersonas = {};
+                filtrados.forEach(row => {
+                    let nombre = row.nombre || "SIN NOMBRE";
+                    let tipo = row.tipo || "ISLERO";
+                    let efectivo = Number(row.totalDinero) || 0;
+                    let key = nombre + "_" + tipo;
+
+                    if (!resumenPersonas[key]) {
+                        resumenPersonas[key] = { nombre: nombre, tipo: tipo, total: 0 };
+                    }
+                    resumenPersonas[key].total += efectivo;
+                });
+
+                // Rellenar tabla de desglose resumido
+                let tbodyResumenHTML = "";
+                let granTotalDesglose = 0;
+                for (let k in resumenPersonas) {
+                    let item = resumenPersonas[k];
+                    granTotalDesglose += item.total;
+                    tbodyResumenHTML += `
+                        <tr>
+                            <td class="fw-bold">${item.nombre}</td>
+                            <td class="text-center text-uppercase">${item.tipo}</td>
+                            <td class="text-end text-success fw-bold">$ ${item.total.toLocaleString('es-CO')}</td>
+                        </tr>
+                    `;
+                }
+                tbodyResumenHTML += `
+                    <tr class="table-secondary fw-bold">
+                        <td colspan="2" class="text-end">TOTAL CONSIGNADO / EFECTIVO:</td>
+                        <td class="text-end text-success">$ ${granTotalDesglose.toLocaleString('es-CO')}</td>
+                    </tr>
+                `;
+                document.querySelector('#tablaDesgloseResumen tbody').innerHTML = tbodyResumenHTML;
+                seccionResumen.style.display = 'block';
+
+                // Rellenar tabla de detalle completo
                 let html = `
                     <div class="table-responsive">
                         <table class="table table-bordered table-striped table-sm align-middle">
