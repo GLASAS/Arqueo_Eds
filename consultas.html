@@ -30,15 +30,14 @@
 <body>
 <div class="container my-5">
     <div class="text-center mb-4 p-4 bg-white shadow-sm rounded-4 border-0 position-relative">
-        <span class="badge bg-primary px-3 py-2 rounded-pill position-absolute top-0 end-0 m-3">Versión V.1758</span>
+        <span class="badge bg-primary px-3 py-2 rounded-pill position-absolute top-0 end-0 m-3">Versión V.2000</span>
         <img src="logo biomax.png" alt="Logo Biomax" class="station-logo mb-2">
         <h2 class="fw-bold text-primary mb-1">Estación de Servicio Biomax Orquideas</h2>
         <p class="text-muted mb-0">Dashboard Gerencial, Desglose de Consignaciones y Consultas por Fecha de Ingreso</p>
     </div>
 
-    <!-- Enlace corregido apuntando a index.html como lo pediste -->
     <div class="mb-4 no-print text-center">
-        <a href="index.html" class="btn btn-modern-dark">← Volver al Módulo de Registro (Arqueos)</a>
+        <a href="Arqueo19.html" class="btn btn-modern-dark">← Volver al Módulo de Registro (Arqueos)</a>
     </div>
 
     <!-- 📊 DASHBOARD GERENCIAL -->
@@ -309,11 +308,20 @@
                     return;
                 }
 
+                // Filtrar estrictamente solo los que coinciden con la Fecha de Ingreso seleccionada (Columna A)
+                let registrosFechaIngreso = data.filter(row => row.fechaIngreso === fechaIngreso);
+
+                if (registrosFechaIngreso.length === 0) {
+                    divResultado.innerHTML = `<div class="alert alert-warning text-center mt-3">No hay registros para la fecha de ingreso: ${fechaIngreso}</div>`;
+                    seccionVal.style.display = 'none';
+                    return;
+                }
+
                 let totalEntradas = 0;
                 let totalRobinson = 0;
                 let desgloseEntradasHtml = "";
 
-                data.forEach(row => {
+                registrosFechaIngreso.forEach(row => {
                     let efectivo = Number(row.totalDinero) || 0;
                     let tipo = row.tipo ? row.tipo.toUpperCase().trim() : "";
                     let nombre = row.nombre ? row.nombre.toUpperCase().trim() : "";
@@ -332,7 +340,7 @@
                     }
                 });
 
-                if (!desgloseEntradasHtml) desgloseEntradasHtml = '<span class="text-muted small">Sin entradas registradas</span>';
+                if (!desgloseEntradasHtml) desgloseEntradasHtml = '<span class="text-muted small">Sin entradas registradas en esta fecha</span>';
 
                 document.getElementById('desgloseEntradasContainer').innerHTML = desgloseEntradasHtml;
                 document.getElementById('valTotalEntradas').innerText = `$ ${totalEntradas.toLocaleString('es-CO')}`;
@@ -357,6 +365,7 @@
                 }
                 seccionVal.style.display = 'block';
 
+                // Detalle de Registro estrictamente por Fecha de Ingreso (Columna A)
                 let html = `
                     <div class="table-responsive">
                         <table class="table table-bordered table-striped table-sm align-middle">
@@ -378,7 +387,7 @@
 
                 let sumaVentas = 0, sumaEfectivoNeto = 0, sumaCreditos = 0, sumaDatafono = 0, sumaAditivos = 0;
 
-                data.forEach(row => {
+                registrosFechaIngreso.forEach(row => {
                     let vta = Number(row.totalVenta) || 0;
                     let efec = Number(row.totalDinero) || 0;
                     let cred = Number(row.totalCreditos) || 0;
@@ -397,7 +406,7 @@
                     let badge = "";
 
                     if (tipo === "MENSAJERO" && nombre.toUpperCase().includes("ROBINSON")) {
-                        efectivoMostrado = -efec;
+                        efectivoMostrado = -efec; // Resta en el total neto para que el balance en efectivo dé $0
                         badge = '<span class="badge bg-success">Consignación Registrada</span>';
                     } else if (tipo === "ISLERO") {
                         badge = (dif === 0 ? '<span class="badge bg-success">Cuadrado</span>' : (dif > 0 ? `<span class="badge bg-primary">+${dif.toLocaleString()}` : `<span class="badge bg-danger">${dif.toLocaleString()}`));
