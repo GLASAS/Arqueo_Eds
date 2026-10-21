@@ -30,14 +30,14 @@
 <body>
 <div class="container my-5">
     <div class="text-center mb-4 p-4 bg-white shadow-sm rounded-4 border-0 position-relative">
-        <span class="badge bg-primary px-3 py-2 rounded-pill position-absolute top-0 end-0 m-3">Versión V.1750</span>
+        <span class="badge bg-primary px-3 py-2 rounded-pill position-absolute top-0 end-0 m-3">Versión V.1900</span>
         <img src="logo biomax.png" alt="Logo Biomax" class="station-logo mb-2">
         <h2 class="fw-bold text-primary mb-1">Estación de Servicio Biomax Orquideas</h2>
         <p class="text-muted mb-0">Dashboard Gerencial, Desglose de Consignaciones y Consultas por Fecha de Ingreso</p>
     </div>
 
     <div class="mb-4 no-print text-center">
-        <a href="index.html" class="btn btn-modern-dark">← Volver al Módulo de Registro (Arqueos)</a>
+        <a href="Arqueo19.html" class="btn btn-modern-dark">← Volver al Módulo de Registro (Arqueos)</a>
     </div>
 
     <!-- 📊 DASHBOARD GERENCIAL -->
@@ -68,7 +68,7 @@
 
     <!-- PANEL DE VALIDACIÓN EXACTO -->
     <div class="card p-4 bg-white border-0 mt-4" id="seccionValidacionCaja" style="display:none;">
-        <h5 class="text-success border-bottom pb-2 mb-3 fw-bold">⚖️ Validación de Efectivo (Isleros + Aire + Baño vs Robinson)</h5>
+        <h5 class="text-success border-bottom pb-2 mb-3 fw-bold">⚖️ Validación de Efectivo por Fecha de Ingreso</h5>
         <div class="row g-3">
             <div class="col-md-4">
                 <div class="p-3 bg-light rounded border h-100">
@@ -92,7 +92,7 @@
                 <div class="p-3 bg-light rounded border h-100">
                     <span class="text-muted small fw-bold">ESTADO DE CUADRE (DIFERENCIA)</span>
                     <h4 class="fw-bold mt-2" id="valEstadoCuadre">$ 0</h4>
-                    <p class="text-muted small mt-2">Resultado de restar la consignación de Robinson a las entradas totales del día.</p>
+                    <p class="text-muted small mt-2">Resultado de restar la consignación de Robinson a las entradas totales.</p>
                 </div>
             </div>
         </div>
@@ -111,7 +111,7 @@
 </div>
 
 <script>
-    const URL_WEB_APP = "https://script.google.com/macros/s/AKfycbxgA2g69VY9Lt79kAyZmYzsRH-3nAoabSQTduMHQ6AbEKGtRz3fOS7tvmOUu05ZJeOv/exec";
+    const URL_WEB_APP = "https://script.google.com/macros/s/AKfycbyYuCEa9aFRbggbGlN2okgP6VhecXQgu79HsMIP0W5JgBp9S3wrAbyyR1nRiFYP44MH/exec";
 
     document.addEventListener("DOMContentLoaded", function() {
         const hoy = new Date();
@@ -123,6 +123,27 @@
         consultarPorFechaIngreso();
     });
 
+    // Función auxiliar para calcular lunes a domingo de la semana actual
+    function obtenerRangoSemanaActual() {
+        let hoy = new Date();
+        let dia = hoy.getDay();
+        let diffA = hoy.getDate() - dia + (dia === 0 ? -6 : 1); // Lunes
+        let lunes = new Date(hoy.setDate(diffA));
+        let domingo = new Date(lunes);
+        domingo.setDate(lunes.getDate() + 6);
+
+        return {
+            lunesStr: lunes.toISOString().substring(0, 10),
+            domingoStr: domingo.toISOString().substring(0, 10)
+        };
+    }
+
+    function obtenerDiaAnteriorStr() {
+        let ayer = new Date();
+        ayer.setDate(ayer.getDate() - 1);
+        return ayer.toISOString().substring(0, 10);
+    }
+
     function cargarDashboard() {
         const mesSeleccionado = document.getElementById('dashMes').value;
         if (!mesSeleccionado) return;
@@ -131,12 +152,14 @@
             .then(res => res.json())
             .then(data => {
                 if (!data) return;
+
+                // 1. Filtrado Mes Actual (Columna B - Fecha Reporte)
                 const registrosMes = data.filter(r => r.fechaReporte && r.fechaReporte.startsWith(mesSeleccionado));
 
                 let totalVentasMes = 0;
                 let totalConsignacionesMes = 0;
                 let totalRobinsonMes = 0;
-                let recaudosIsleros = {};
+                let recaudosIslerosMes = {};
 
                 registrosMes.forEach(r => {
                     let vta = Number(r.totalVenta) || 0;
@@ -146,19 +169,68 @@
 
                     totalVentasMes += vta;
                     if (tipo === "ISLERO") {
-                        recaudosIsleros[nombre] = (recaudosIsleros[nombre] || 0) + efectivo;
+                        recaudosIslerosMes[nombre] = (recaudosIslerosMes[nombre] || 0) + efectivo;
                     } else if (tipo === "MENSAJERO" && nombre.includes("ROBINSON")) {
                         totalConsignacionesMes += efectivo;
                         totalRobinsonMes += efectivo;
                     }
                 });
 
-                let islerosHtml = "";
-                for (let islero in recaudosIsleros) {
-                    islerosHtml += `<div><strong>${islero}:</strong> $ ${recaudosIsleros[islero].toLocaleString('es-CO')}</div>`;
+                let islerosMesHtml = "";
+                for (let islero in recaudosIslerosMes) {
+                    islerosMesHtml += `<span><strong>${islero}:</strong> $ ${recaudosIslerosMes[islero].toLocaleString('es-CO')}</span>`;
                 }
-                if (!islerosHtml) islerosHtml = "<span>Sin registros en el mes</span>";
+                if (!islerosMesHtml) islerosMesHtml = "<span>Sin registros en el mes</span>";
 
+                // 2. Filtrado Semana Actual (Lunes a Domingo por Fecha Reporte - Columna B)
+                const rangoSemana = obtenerRangoSemanaActual();
+                const registrosSemana = data.filter(r => r.fechaReporte && r.fechaReporte >= rangoSemana.lunesStr && r.fechaReporte <= rangoSemana.domingoStr);
+
+                let totalVentasSemana = 0;
+                let totalRobinsonSemana = 0;
+                let recaudosIslerosSemana = {};
+
+                registrosSemana.forEach(r => {
+                    let vta = Number(r.totalVenta) || 0;
+                    let efectivo = Number(r.totalDinero) || 0;
+                    let tipo = r.tipo ? r.tipo.toUpperCase().trim() : "";
+                    let nombre = r.nombre ? r.nombre.toUpperCase().trim() : "";
+
+                    totalVentasSemana += vta;
+                    if (tipo === "ISLERO") {
+                        recaudosIslerosSemana[nombre] = (recaudosIslerosSemana[nombre] || 0) + efectivo;
+                    } else if (tipo === "MENSAJERO" && nombre.includes("ROBINSON")) {
+                        totalRobinsonSemana += efectivo;
+                    }
+                });
+
+                let islerosSemanaHtml = "";
+                for (let islero in recaudosIslerosSemana) {
+                    islerosSemanaHtml += `<span><strong>${islero}:</strong> $ ${recaudosIslerosSemana[islero].toLocaleString('es-CO')}</span>`;
+                }
+                if (!islerosSemanaHtml) islerosSemanaHtml = "<span>Sin registros en la semana</span>";
+
+                // 3. Filtrado Día Anterior (Por Fecha Reporte - Columna B)
+                const diaAnteriorStr = obtenerDiaAnteriorStr();
+                const registrosAyer = data.filter(r => r.fechaReporte && r.fechaReporte === diaAnteriorStr);
+
+                let recaudosIslerosAyer = {};
+                registrosAyer.forEach(r => {
+                    let efectivo = Number(r.totalDinero) || 0;
+                    let tipo = r.tipo ? r.tipo.toUpperCase().trim() : "";
+                    let nombre = r.nombre ? r.nombre.toUpperCase().trim() : "";
+                    if (tipo === "ISLERO") {
+                        recaudosIslerosAyer[nombre] = (recaudosIslerosAyer[nombre] || 0) + efectivo;
+                    }
+                });
+
+                let islerosAyerHtml = "";
+                for (let islero in recaudosIslerosAyer) {
+                    islerosAyerHtml += `<span><strong>${islero}:</strong> $ ${recaudosIslerosAyer[islero].toLocaleString('es-CO')}</span>`;
+                }
+                if (!islerosAyerHtml) islerosAyerHtml = "<span>Sin registros para el día anterior (${diaAnteriorStr})</span>";
+
+                // Renderizado completo del Dashboard
                 document.getElementById('dashboardContainer').innerHTML = `
                     <div class="col-md-4">
                         <div class="dash-card">
@@ -181,7 +253,25 @@
                     <div class="col-md-12">
                         <div class="dash-card" style="border-left-color: #0dcaf0;">
                             <span class="text-muted small fw-bold">🧑‍💼 RECAUDO DETALLADO POR ISLERO (MES)</span>
-                            <div class="mt-2 d-flex flex-wrap gap-4">${islerosHtml}</div>
+                            <div class="mt-2 d-flex flex-wrap gap-4">${islerosMesHtml}</div>
+                        </div>
+                    </div>
+
+                    <!-- SECCIÓN SEMANA ACTUAL -->
+                    <div class="col-md-6 mt-3">
+                        <div class="dash-card" style="border-left-color: #6610f2;">
+                            <span class="text-muted small fw-bold">📅 SEMANA EN CURSO (${rangoSemana.lunesStr} al ${rangoSemana.domingoStr})</span>
+                            <h4 class="text-dark fw-bold mt-1">$ ${totalVentasSemana.toLocaleString('es-CO')} <small class="text-muted fs-6">(Ventas)</small></h4>
+                            <div class="mt-2 text-muted small">Robinson: $ ${totalRobinsonSemana.toLocaleString('es-CO')}</div>
+                            <div class="mt-2 d-flex flex-wrap gap-3 small">${islerosSemanaHtml}</div>
+                        </div>
+                    </div>
+
+                    <!-- SECCIÓN DÍA ANTERIOR -->
+                    <div class="col-md-6 mt-3">
+                        <div class="dash-card" style="border-left-color: #fd7e14;">
+                            <span class="text-muted small fw-bold">📆 DÍA ANTERIOR (${diaAnteriorStr}) - RECAUDO ISLEROS</span>
+                            <div class="mt-3 d-flex flex-wrap gap-4">${islerosAyerHtml}</div>
                         </div>
                     </div>
                 `;
@@ -219,7 +309,6 @@
                     let tipo = row.tipo ? row.tipo.toUpperCase().trim() : "";
                     let nombre = row.nombre ? row.nombre.toUpperCase().trim() : "";
 
-                    // Sumamos todo lo que aparece en la tabla con esta Fecha de Ingreso (Isleros + Aire + Baño)
                     if (tipo === "ISLERO" || tipo === "AIRE" || tipo === "BAÑO") {
                         totalEntradas += efectivo;
                         let etiqueta = tipo === "ISLERO" ? `Islero (${nombre})` : `${tipo} (${nombre})`;
@@ -240,7 +329,6 @@
                 document.getElementById('valTotalEntradas').innerText = `$ ${totalEntradas.toLocaleString('es-CO')}`;
                 document.getElementById('valTotalRobinson').innerText = `$ ${totalRobinson.toLocaleString('es-CO')}`;
 
-                // Validación exacta: Total Entradas (Isleros + Aire + Baño) - Consignación Robinson = Diferencia
                 let diferenciaCuadre = totalEntradas - totalRobinson;
                 let lblCuadre = document.getElementById('valEstadoCuadre');
                 lblCuadre.innerText = `$ ${Math.abs(diferenciaCuadre).toLocaleString('es-CO')}`;
@@ -260,7 +348,7 @@
                 }
                 seccionVal.style.display = 'block';
 
-                // Rellenar tabla de detalle completo
+                // Rellenar tabla de detalle completo estrictamente por fecha de ingreso
                 let html = `
                     <div class="table-responsive">
                         <table class="table table-bordered table-striped table-sm align-middle">
@@ -280,7 +368,7 @@
                             <tbody>
                 `;
 
-                let sumaVentas = 0, sumaEfectivo = 0, sumaCreditos = 0, sumaDatafono = 0, sumaAditivos = 0;
+                let sumaVentas = 0, sumaEfectivoNeto = 0, sumaCreditos = 0, sumaDatafono = 0, sumaAditivos = 0;
 
                 data.forEach(row => {
                     let vta = Number(row.totalVenta) || 0;
@@ -290,14 +378,27 @@
                     let adit = Number(row.totalAditivos) || 0;
                     let dif = Number(row.diferencia) || 0;
                     let tipo = row.tipo || "";
+                    let nombre = row.nombre || "";
 
                     sumaVentas += vta;
-                    sumaEfectivo += efec;
                     sumaCreditos += cred;
                     sumaDatafono += dataf;
                     sumaAditivos += adit;
 
-                    let badge = tipo === "ISLERO" ? (dif === 0 ? '<span class="badge bg-success">Cuadrado</span>' : (dif > 0 ? `<span class="badge bg-primary">+${dif.toLocaleString()}` : `<span class="badge bg-danger">${dif.toLocaleString()}`)) : '<span class="badge bg-success">Registrado</span>';
+                    // Si es mensajero (Robinson), en la columna efectivo restamos para el neto final de la tabla
+                    let efectivoMostrado = efec;
+                    let badge = "";
+
+                    if (tipo === "MENSAJERO" && nombre.toUpperCase().includes("ROBINSON")) {
+                        efectivoMostrado = -efec; // Resta en el total neto
+                        badge = '<span class="badge bg-success">Consignación Registrada</span>';
+                    } else if (tipo === "ISLERO") {
+                        badge = (dif === 0 ? '<span class="badge bg-success">Cuadrado</span>' : (dif > 0 ? `<span class="badge bg-primary">+${dif.toLocaleString()}` : `<span class="badge bg-danger">${dif.toLocaleString()}`));
+                    } else {
+                        badge = '<span class="badge bg-success">Registrado</span>';
+                    }
+
+                    sumaEfectivoNeto += efectivoMostrado;
 
                     html += `
                         <tr>
@@ -305,7 +406,7 @@
                             <td class="text-center">${row.fechaReporte}</td>
                             <td class="text-center text-uppercase">${tipo}</td>
                             <td class="text-end">$ ${vta.toLocaleString('es-CO')}</td>
-                            <td class="text-end text-success fw-bold">$ ${efec.toLocaleString('es-CO')}</td>
+                            <td class="text-end ${efectivoMostrado < 0 ? 'text-danger' : 'text-success'} fw-bold">$ ${efectivoMostrado.toLocaleString('es-CO')}</td>
                             <td class="text-end">$ ${cred.toLocaleString('es-CO')}</td>
                             <td class="text-end">$ ${dataf.toLocaleString('es-CO')}</td>
                             <td class="text-end">$ ${adit.toLocaleString('es-CO')}</td>
@@ -318,13 +419,13 @@
                             </tbody>
                             <tfoot class="table-secondary fw-bold">
                                 <tr>
-                                    <td colspan="3" class="text-end">TOTALES:</td>
+                                    <td colspan="3" class="text-end">TOTALES NETOS:</td>
                                     <td class="text-end">$ ${sumaVentas.toLocaleString('es-CO')}</td>
-                                    <td class="text-end text-success">$ ${sumaEfectivo.toLocaleString('es-CO')}</td>
+                                    <td class="text-end ${sumaEfectivoNeto < 0 ? 'text-danger' : 'text-success'}">$ ${sumaEfectivoNeto.toLocaleString('es-CO')}</td>
                                     <td class="text-end">$ ${sumaCreditos.toLocaleString('es-CO')}</td>
                                     <td class="text-end">$ ${sumaDatafono.toLocaleString('es-CO')}</td>
                                     <td class="text-end">$ ${sumaAditivos.toLocaleString('es-CO')}</td>
-                                    <td></td>
+                                    <td class="text-center">${sumaEfectivoNeto === 0 ? '<span class="badge bg-success">CUADRE EXACTO ($0)</span>' : '<span class="badge bg-warning text-dark">DIFERENCIA</span>'}</td>
                                 </tr>
                             </tfoot>
                         </table>
