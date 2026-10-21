@@ -34,16 +34,17 @@
 </head>
 <body>
 <div class="container my-4">
-    <div class="text-center mb-4 p-4 bg-white shadow-sm rounded-4 border-0 position-relative">
-        <span class="badge bg-primary px-3 py-2 rounded-pill position-absolute top-0 end-0 m-3" id="badgeModo">Versión V.2107</span>
+    <div class="text-center mb-4 p-4 bg-white shadow-sm rounded-4 border-0">
         <img src="logo biomax.png" alt="Logo Biomax" class="station-logo mb-2">
         <h2 class="fw-bold text-primary mb-1">Estación de Servicio Biomax Orquideas</h2>
         <p class="text-muted mb-0">Relación de Caja, Arqueos de Isleros y Consolidado</p>
     </div>
 
+    <!-- Fila de Navegación y Versión juntas -->
     <div class="row mb-4 no-print align-items-center g-3">
-        <div class="col-md-6">
-            <a href="consultas.html" class="btn btn-modern-dark w-100 text-center">🔍 Ir al Módulo de Filtros, Consultas y Dashboard →</a>
+        <div class="col-md-6 d-flex align-items-center gap-3">
+            <a href="consultas.html" class="btn btn-modern-dark text-center flex-grow-1">🔍 Ir al Módulo de Filtros, Consultas y Dashboard →</a>
+            <span class="badge bg-primary px-3 py-2 rounded-pill" id="badgeModo">V.2110</span>
         </div>
         <div class="col-md-6">
             <button class="btn btn-modern-outline w-100" type="button" data-bs-toggle="collapse" data-bs-target="#collapseCargar">
@@ -288,7 +289,7 @@
             return;
         }
 
-        // URL correcta asegurando el envío de parámetros exactos
+        // URL corregida con codificación exacta para que el servidor la reciba sin errores
         const url = URL_WEB_APP + "?fecha=" + encodeURIComponent(fechaBuscada) + "&nombre=" + encodeURIComponent(nombreBuscado);
 
         fetch(url)
@@ -328,7 +329,8 @@
                 rellenarListaDinamica('listaAditivos', 'aditivo-val', reg.aditivosLista);
 
                 modoEdicion = true;
-                document.getElementById('badgeModo').innerText = "Modo: Modificando Registro";
+                document.getElementById('badgeModo').innerText = "V.1930 (Modificando)";
+                document.getElementById('badgeModo').className = "badge bg-warning text-dark px-3 py-2 rounded-pill";
                 document.getElementById('btnAccion').innerText = "✏️ Actualizar Registro";
 
                 calcularArqueo();
@@ -431,7 +433,8 @@
             document.querySelectorAll('#tablaBilletes input').forEach(i => i.value = '0');
             inicializarFilasDinamicas();
             modoEdicion = false;
-            document.getElementById('badgeModo').innerText = "Versión V.1930";
+            document.getElementById('badgeModo').innerText = "V.1930";
+            document.getElementById('badgeModo').className = "badge bg-primary px-3 py-2 rounded-pill";
             document.getElementById('btnAccion').innerText = "☁️ Enviar a Google Drive";
             calcularArqueo();
         }
@@ -446,7 +449,6 @@
         document.querySelectorAll('#tablaBilletes input').forEach(i => cantidades[i.dataset.key] = parseInt(i.value) || 0);
 
         let creditosArr = [], datafonoArr = [], aditivosArr = [];
-        document.querySelectorAll('.credito-val').forEach(i => { if(parseCurrency(i.value)>0) creditosLista=creditosArr.push(parseCurrency(i.value)); }); // Mantenido seguro
         document.querySelectorAll('.credito-val').forEach(i => { if(parseCurrency(i.value)>0) creditosArr.push(parseCurrency(i.value)); });
         document.querySelectorAll('.datafono-val').forEach(i => { if(parseCurrency(i.value)>0) datafonoArr.push(parseCurrency(i.value)); });
         document.querySelectorAll('.aditivo-val').forEach(i => { if(parseCurrency(i.value)>0) aditivosArr.push(parseCurrency(i.value)); });
