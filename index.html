@@ -40,11 +40,11 @@
         <p class="text-muted mb-0">Relación de Caja, Arqueos de Isleros y Consolidado</p>
     </div>
 
-    <!-- Fila de Navegación y Versión juntas -->
+    <!-- Fila de Navegación, Versión y Estado juntas arriba -->
     <div class="row mb-4 no-print align-items-center g-3">
         <div class="col-md-6 d-flex align-items-center gap-3">
             <a href="consultas.html" class="btn btn-modern-dark text-center flex-grow-1">🔍 Ir al Módulo de Filtros, Consultas y Dashboard →</a>
-            <span class="badge bg-primary px-3 py-2 rounded-pill" id="badgeModo">V.2112</span>
+            <span class="badge bg-primary px-3 py-2 rounded-pill" id="badgeModo">V.1930</span>
         </div>
         <div class="col-md-6">
             <button class="btn btn-modern-outline w-100" type="button" data-bs-toggle="collapse" data-bs-target="#collapseCargar">
@@ -186,7 +186,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-    // URL de Web App ubicada lo más arriba posible, justo al iniciar el script
+    // URL de Web App y versión ubicadas exactamente en la parte superior del script
     const URL_WEB_APP = "https://script.google.com/macros/s/AKfycbw6dsRUdbfyEhqMSbDLl4lpGEU07EFIKvciHuBQMIGLm8H94s0y_ED0PkW2NEksZqhM/exec";
     let modoEdicion = false;
 
@@ -454,6 +454,7 @@
         document.querySelectorAll('.aditivo-val').forEach(i => { if(parseCurrency(i.value)>0) aditivosArr.push(parseCurrency(i.value)); });
 
         const datos = {
+            accion: modoEdicion ? "actualizar" : "crear",
             tipo: tipoReporte,
             nombre: nombre.toUpperCase(),
             fecha: document.getElementById('fecha').value,
@@ -474,7 +475,7 @@
 
         const btn = event.target;
         let originalText = btn.innerText;
-        btn.innerText = "Guardando...";
+        btn.innerText = modoEdicion ? "Actualizando..." : "Enviando...";
         btn.disabled = true;
 
         fetch(URL_WEB_APP, {
@@ -483,7 +484,7 @@
             headers: { 'Content-Type': 'text/plain;charset=utf-8' },
             body: JSON.stringify(datos)
         }).then(() => {
-            alert('¡Registro guardado y actualizado exitosamente!');
+            alert(modoEdicion ? '¡Registro actualizado exitosamente!' : '¡Reporte enviado exitosamente!');
             btn.innerText = originalText;
             btn.disabled = false;
             nuevoArqueo();
