@@ -30,14 +30,14 @@
 <body>
 <div class="container my-5">
     <div class="text-center mb-4 p-4 bg-white shadow-sm rounded-4 border-0 position-relative">
-        <span class="badge bg-primary px-3 py-2 rounded-pill position-absolute top-0 end-0 m-3">Versión V.1900</span>
+        <span class="badge bg-primary px-3 py-2 rounded-pill position-absolute top-0 end-0 m-3">Versión V.1730</span>
         <img src="logo biomax.png" alt="Logo Biomax" class="station-logo mb-2">
         <h2 class="fw-bold text-primary mb-1">Estación de Servicio Biomax Orquideas</h2>
         <p class="text-muted mb-0">Dashboard Gerencial, Desglose de Consignaciones y Consultas por Fecha de Ingreso</p>
     </div>
 
     <div class="mb-4 no-print text-center">
-        <a href="Arqueo19.html" class="btn btn-modern-dark">← Volver al Módulo de Registro (Arqueos)</a>
+        <a href="index.html" class="btn btn-modern-dark">← Volver al Módulo de Registro (Arqueos)</a>
     </div>
 
     <!-- 📊 DASHBOARD GERENCIAL -->
@@ -66,9 +66,9 @@
         </div>
     </div>
 
-    <!-- PANEL DE VALIDACIÓN EXACTO -->
+    <!-- PANEL DE VALIDACIÓN ESTRICTO POR FECHA DE INGRESO -->
     <div class="card p-4 bg-white border-0 mt-4" id="seccionValidacionCaja" style="display:none;">
-        <h5 class="text-success border-bottom pb-2 mb-3 fw-bold">⚖️ Validación de Efectivo por Fecha de Ingreso</h5>
+        <h5 class="text-success border-bottom pb-2 mb-3 fw-bold">⚖️ Validación de Efectivo por Fecha de Ingreso (Columna A)</h5>
         <div class="row g-3">
             <div class="col-md-4">
                 <div class="p-3 bg-light rounded border h-100">
@@ -85,14 +85,14 @@
                 <div class="p-3 bg-light rounded border h-100">
                     <span class="text-muted small fw-bold">CONSIGNADO POR ROBINSON (MENSAJERO)</span>
                     <h4 class="text-success fw-bold mt-2" id="valTotalRobinson">$ 0</h4>
-                    <p class="text-muted small mt-2">Monto recolectado y consignado por el mensajero en esta fecha de ingreso.</p>
+                    <p class="text-muted small mt-2">Monto recolectado y consignado por el mensajero en esta misma fecha de ingreso.</p>
                 </div>
             </div>
             <div class="col-md-4">
                 <div class="p-3 bg-light rounded border h-100">
                     <span class="text-muted small fw-bold">ESTADO DE CUADRE (DIFERENCIA)</span>
                     <h4 class="fw-bold mt-2" id="valEstadoCuadre">$ 0</h4>
-                    <p class="text-muted small mt-2">Resultado de restar la consignación de Robinson a las entradas totales.</p>
+                    <p class="text-muted small mt-2">Debe ser $0 exacto al restar la consignación de Robinson de las entradas totales.</p>
                 </div>
             </div>
         </div>
@@ -111,7 +111,7 @@
 </div>
 
 <script>
-    const URL_WEB_APP = "https://script.google.com/macros/s/AKfycbxgA2g69VY9Lt79kAyZmYzsRH-3nAoabSQTduMHQ6AbEKGtRz3fOS7tvmOUu05ZJeOv/exec";
+    const URL_WEB_APP = "https://script.google.com/macros/s/AKfycbyYuCEa9aFRbggbGlN2okgP6VhecXQgu79HsMIP0W5JgBp9S3wrAbyyR1nRiFYP44MH/exec";
 
     document.addEventListener("DOMContentLoaded", function() {
         const hoy = new Date();
@@ -123,7 +123,6 @@
         consultarPorFechaIngreso();
     });
 
-    // Función auxiliar para calcular lunes a domingo de la semana actual
     function obtenerRangoSemanaActual() {
         let hoy = new Date();
         let dia = hoy.getDay();
@@ -153,7 +152,7 @@
             .then(data => {
                 if (!data) return;
 
-                // 1. Filtrado Mes Actual (Columna B - Fecha Reporte)
+                // 1. Mes Actual (Columna B - Fecha Reporte)
                 const registrosMes = data.filter(r => r.fechaReporte && r.fechaReporte.startsWith(mesSeleccionado));
 
                 let totalVentasMes = 0;
@@ -182,7 +181,7 @@
                 }
                 if (!islerosMesHtml) islerosMesHtml = "<span>Sin registros en el mes</span>";
 
-                // 2. Filtrado Semana Actual (Lunes a Domingo por Fecha Reporte - Columna B)
+                // 2. Semana en Curso (Lunes a Domingo por Columna B - Fecha Reporte)
                 const rangoSemana = obtenerRangoSemanaActual();
                 const registrosSemana = data.filter(r => r.fechaReporte && r.fechaReporte >= rangoSemana.lunesStr && r.fechaReporte <= rangoSemana.domingoStr);
 
@@ -191,12 +190,15 @@
                 let recaudosIslerosSemana = {};
 
                 registrosSemana.forEach(r => {
-                    let vta = Number(r.totalVenta) || 0;
                     let efectivo = Number(r.totalDinero) || 0;
                     let tipo = r.tipo ? r.tipo.toUpperCase().trim() : "";
                     let nombre = r.nombre ? r.nombre.toUpperCase().trim() : "";
 
-                    totalVentasSemana += vta;
+                    // Sumamos Isleros, Aire y Baño para las ventas de la semana
+                    if (tipo === "ISLERO" || tipo === "AIRE" || tipo === "BAÑO") {
+                        totalVentasSemana += efectivo;
+                    }
+
                     if (tipo === "ISLERO") {
                         recaudosIslerosSemana[nombre] = (recaudosIslerosSemana[nombre] || 0) + efectivo;
                     } else if (tipo === "MENSAJERO" && nombre.includes("ROBINSON")) {
@@ -210,7 +212,7 @@
                 }
                 if (!islerosSemanaHtml) islerosSemanaHtml = "<span>Sin registros en la semana</span>";
 
-                // 3. Filtrado Día Anterior (Por Fecha Reporte - Columna B)
+                // 3. Día Anterior (Por Columna B - Fecha Reporte)
                 const diaAnteriorStr = obtenerDiaAnteriorStr();
                 const registrosAyer = data.filter(r => r.fechaReporte && r.fechaReporte === diaAnteriorStr);
 
@@ -219,7 +221,7 @@
                     let efectivo = Number(r.totalDinero) || 0;
                     let tipo = r.tipo ? r.tipo.toUpperCase().trim() : "";
                     let nombre = r.nombre ? r.nombre.toUpperCase().trim() : "";
-                    if (tipo === "ISLERO") {
+                    if (tipo === "ISLERO" || tipo === "AIRE" || tipo === "BAÑO") {
                         recaudosIslerosAyer[nombre] = (recaudosIslerosAyer[nombre] || 0) + efectivo;
                     }
                 });
@@ -228,7 +230,7 @@
                 for (let islero in recaudosIslerosAyer) {
                     islerosAyerHtml += `<span><strong>${islero}:</strong> $ ${recaudosIslerosAyer[islero].toLocaleString('es-CO')}</span>`;
                 }
-                if (!islerosAyerHtml) islerosAyerHtml = "<span>Sin registros para el día anterior (${diaAnteriorStr})</span>";
+                if (!islerosAyerHtml) islerosAyerHtml = `<span>Sin registros para el día anterior (${diaAnteriorStr})</span>`;
 
                 // Renderizado completo del Dashboard
                 document.getElementById('dashboardContainer').innerHTML = `
@@ -257,20 +259,20 @@
                         </div>
                     </div>
 
-                    <!-- SECCIÓN SEMANA ACTUAL -->
+                    <!-- SEMANA EN CURSO -->
                     <div class="col-md-6 mt-3">
                         <div class="dash-card" style="border-left-color: #6610f2;">
                             <span class="text-muted small fw-bold">📅 SEMANA EN CURSO (${rangoSemana.lunesStr} al ${rangoSemana.domingoStr})</span>
-                            <h4 class="text-dark fw-bold mt-1">$ ${totalVentasSemana.toLocaleString('es-CO')} <small class="text-muted fs-6">(Ventas)</small></h4>
-                            <div class="mt-2 text-muted small">Robinson: $ ${totalRobinsonSemana.toLocaleString('es-CO')}</div>
+                            <h4 class="text-dark fw-bold mt-1">$ ${totalVentasSemana.toLocaleString('es-CO')} <small class="text-muted fs-6">(Ventas Isleros + Aire + Baño)</small></h4>
+                            <div class="mt-2 text-muted small">Robinson (Consignado): $ ${totalRobinsonSemana.toLocaleString('es-CO')}</div>
                             <div class="mt-2 d-flex flex-wrap gap-3 small">${islerosSemanaHtml}</div>
                         </div>
                     </div>
 
-                    <!-- SECCIÓN DÍA ANTERIOR -->
+                    <!-- DÍA ANTERIOR -->
                     <div class="col-md-6 mt-3">
                         <div class="dash-card" style="border-left-color: #fd7e14;">
-                            <span class="text-muted small fw-bold">📆 DÍA ANTERIOR (${diaAnteriorStr}) - RECAUDO ISLEROS</span>
+                            <span class="text-muted small fw-bold">📆 DÍA ANTERIOR (${diaAnteriorStr}) - RECAUDO</span>
                             <div class="mt-3 d-flex flex-wrap gap-4">${islerosAyerHtml}</div>
                         </div>
                     </div>
@@ -348,7 +350,7 @@
                 }
                 seccionVal.style.display = 'block';
 
-                // Rellenar tabla de detalle completo estrictamente por fecha de ingreso
+                // Detalle de Registro por Columna A (Fecha de Ingreso)
                 let html = `
                     <div class="table-responsive">
                         <table class="table table-bordered table-striped table-sm align-middle">
@@ -385,12 +387,11 @@
                     sumaDatafono += dataf;
                     sumaAditivos += adit;
 
-                    // Si es mensajero (Robinson), en la columna efectivo restamos para el neto final de la tabla
                     let efectivoMostrado = efec;
                     let badge = "";
 
                     if (tipo === "MENSAJERO" && nombre.toUpperCase().includes("ROBINSON")) {
-                        efectivoMostrado = -efec; // Resta en el total neto
+                        efectivoMostrado = -efec; // Resta en el total neto para que el balance en efectivo dé $0
                         badge = '<span class="badge bg-success">Consignación Registrada</span>';
                     } else if (tipo === "ISLERO") {
                         badge = (dif === 0 ? '<span class="badge bg-success">Cuadrado</span>' : (dif > 0 ? `<span class="badge bg-primary">+${dif.toLocaleString()}` : `<span class="badge bg-danger">${dif.toLocaleString()}`));
@@ -421,11 +422,11 @@
                                 <tr>
                                     <td colspan="3" class="text-end">TOTALES NETOS:</td>
                                     <td class="text-end">$ ${sumaVentas.toLocaleString('es-CO')}</td>
-                                    <td class="text-end ${sumaEfectivoNeto < 0 ? 'text-danger' : 'text-success'}">$ ${sumaEfectivoNeto.toLocaleString('es-CO')}</td>
+                                    <td class="text-end ${sumaEfectivoNeto === 0 ? 'text-success' : 'text-danger'}">$ ${sumaEfectivoNeto.toLocaleString('es-CO')}</td>
                                     <td class="text-end">$ ${sumaCreditos.toLocaleString('es-CO')}</td>
                                     <td class="text-end">$ ${sumaDatafono.toLocaleString('es-CO')}</td>
                                     <td class="text-end">$ ${sumaAditivos.toLocaleString('es-CO')}</td>
-                                    <td class="text-center">${sumaEfectivoNeto === 0 ? '<span class="badge bg-success">CUADRE EXACTO ($0)</span>' : '<span class="badge bg-warning text-dark">DIFERENCIA</span>'}</td>
+                                    <td class="text-center">${sumaEfectivoNeto === 0 ? '<span class="badge bg-success">CUADRADO ($0)</span>' : '<span class="badge bg-warning text-dark">DIFERENCIA</span>'}</td>
                                 </tr>
                             </tfoot>
                         </table>
