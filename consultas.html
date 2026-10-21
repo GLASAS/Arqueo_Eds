@@ -30,14 +30,14 @@
 <body>
 <div class="container my-5">
     <div class="text-center mb-4 p-4 bg-white shadow-sm rounded-4 border-0 position-relative">
-        <span class="badge bg-primary px-3 py-2 rounded-pill position-absolute top-0 end-0 m-3">Versión V.1930</span>
+        <span class="badge bg-primary px-3 py-2 rounded-pill position-absolute top-0 end-0 m-3">Versión V.1740</span>
         <img src="logo biomax.png" alt="Logo Biomax" class="station-logo mb-2">
         <h2 class="fw-bold text-primary mb-1">Estación de Servicio Biomax Orquideas</h2>
         <p class="text-muted mb-0">Dashboard Gerencial, Desglose de Consignaciones y Consultas por Fecha de Ingreso</p>
     </div>
 
     <div class="mb-4 no-print text-center">
-        <a href="index.html" class="btn btn-modern-dark">← Volver al Módulo de Registro (Arqueos)</a>
+        <a href="Arqueo19.html" class="btn btn-modern-dark">← Volver al Módulo de Registro (Arqueos)</a>
     </div>
 
     <!-- 📊 DASHBOARD GERENCIAL -->
@@ -111,7 +111,7 @@
 </div>
 
 <script>
-    const URL_WEB_APP = "https://script.google.com/macros/s/AKfycbxgA2g69VY9Lt79kAyZmYzsRH-3nAoabSQTduMHQ6AbEKGtRz3fOS7tvmOUu05ZJeOv/exec";
+    const URL_WEB_APP = "https://script.google.com/macros/s/AKfycbyYuCEa9aFRbggbGlN2okgP6VhecXQgu79HsMIP0W5JgBp9S3wrAbyyR1nRiFYP44MH/exec";
 
     document.addEventListener("DOMContentLoaded", function() {
         const hoy = new Date();
@@ -123,24 +123,36 @@
         consultarPorFechaIngreso();
     });
 
+    // Función corregida para calcular estrictamente de Lunes a Domingo
     function obtenerRangoSemanaActual() {
         let hoy = new Date();
-        let dia = hoy.getDay();
-        let diffA = hoy.getDate() - dia + (dia === 0 ? -6 : 1); // Lunes
-        let lunes = new Date(hoy.setDate(diffA));
+        let dia = hoy.getDay(); // 0 es domingo, 1 es lunes, etc.
+        let diff = hoy.getDate() - dia + (dia === 0 ? -6 : 1); // Ajustar para que el lunes sea el inicio
+        let lunes = new Date(hoy.setDate(diff));
         let domingo = new Date(lunes);
         domingo.setDate(lunes.getDate() + 6);
 
+        // Formatear a YYYY-MM-DD usando fecha local para evitar desfases
+        const formatLocalDate = (d) => {
+            let year = d.getFullYear();
+            let month = String(d.getMonth() + 1).padStart(2, '0');
+            let day = String(d.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        };
+
         return {
-            lunesStr: lunes.toISOString().substring(0, 10),
-            domingoStr: domingo.toISOString().substring(0, 10)
+            lunesStr: formatLocalDate(lunes),
+            domingoStr: formatLocalDate(domingo)
         };
     }
 
     function obtenerDiaAnteriorStr() {
         let ayer = new Date();
         ayer.setDate(ayer.getDate() - 1);
-        return ayer.toISOString().substring(0, 10);
+        let year = ayer.getFullYear();
+        let month = String(ayer.getMonth() + 1).padStart(2, '0');
+        let day = String(ayer.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
     }
 
     function cargarDashboard() {
@@ -194,7 +206,7 @@
                     let tipo = r.tipo ? r.tipo.toUpperCase().trim() : "";
                     let nombre = r.nombre ? r.nombre.toUpperCase().trim() : "";
 
-                    // Sumamos Isleros, Aire y Baño para las ventas de la semana
+                    // Sumamos Isleros, Aire y Baño para las ventas de la semana (Columna B)
                     if (tipo === "ISLERO" || tipo === "AIRE" || tipo === "BAÑO") {
                         totalVentasSemana += efectivo;
                     }
@@ -216,19 +228,19 @@
                 const diaAnteriorStr = obtenerDiaAnteriorStr();
                 const registrosAyer = data.filter(r => r.fechaReporte && r.fechaReporte === diaAnteriorStr);
 
-                let recaudosIslerosAyer = {};
+                let recaudosAyer = {};
                 registrosAyer.forEach(r => {
                     let efectivo = Number(r.totalDinero) || 0;
                     let tipo = r.tipo ? r.tipo.toUpperCase().trim() : "";
                     let nombre = r.nombre ? r.nombre.toUpperCase().trim() : "";
                     if (tipo === "ISLERO" || tipo === "AIRE" || tipo === "BAÑO") {
-                        recaudosIslerosAyer[nombre] = (recaudosIslerosAyer[nombre] || 0) + efectivo;
+                        recaudosAyer[nombre] = (recaudosAyer[nombre] || 0) + efectivo;
                     }
                 });
 
                 let islerosAyerHtml = "";
-                for (let islero in recaudosIslerosAyer) {
-                    islerosAyerHtml += `<span><strong>${islero}:</strong> $ ${recaudosIslerosAyer[islero].toLocaleString('es-CO')}</span>`;
+                for (let islero in recaudosAyer) {
+                    islerosAyerHtml += `<span><strong>${islero}:</strong> $ ${recaudosAyer[islero].toLocaleString('es-CO')}</span>`;
                 }
                 if (!islerosAyerHtml) islerosAyerHtml = `<span>Sin registros para el día anterior (${diaAnteriorStr})</span>`;
 
