@@ -47,7 +47,7 @@
     <div class="row mb-4 no-print align-items-center g-3">
         <div class="col-md-6 d-flex align-items-center gap-3">
             <a href="consultas.html" class="btn btn-modern-dark text-center flex-grow-1">🔍 Ir al Módulo de Filtros, Consultas y Dashboard →</a>
-            <span class="badge bg-primary px-3 py-2 rounded-pill" id="badgeModo">V1.1130</span>
+            <span class="badge bg-primary px-3 py-2 rounded-pill" id="badgeModo">V.2200</span>
         </div>
         <div class="col-md-6">
             <button class="btn btn-modern-outline w-100" type="button" data-bs-toggle="collapse" data-bs-target="#collapseCargar">
@@ -196,8 +196,8 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-    const URL_WEB_APP = "https://script.google.com/macros/s/AKfycbwaZJOr1677uRoAsTe1ReCzvL_fE8BBFTHvq5HRy9-hrrO8-DpLUwGQwsgOEvvVlEAv/exec";
-    let modoEdicion = false; // False = Crea nuevo / True = Actualiza registro cargado
+    const URL_WEB_APP = "https://script.google.com/macros/s/AKfycbyKuBctOHz_mOqQNqkj48f_HztRGBZVZqtCCw8X5cZ105cfgteknUlxRl3pM3RqXxeh/exec";
+    let modoEdicion = false;
 
     const denominaciones = [
         {val: 100000, tipo: 'billete', label: '100.000 (Billete)', key: 'b100000'},
@@ -310,8 +310,9 @@
                 }
 
                 const reg = data[0];
-                document.getElementById('tipoMovimiento').value = (reg.tipo === "SALIDA" ? "SALIDA" : "INGRESO");
-                document.getElementById('tipoReporte').value = reg.tipo.toLowerCase() === "salida" ? "mensajero" : "islero";
+                document.getElementById('tipoMovimiento').value = (reg.tipoMovimiento === "SALIDA" ? "SALIDA" : "INGRESO");
+                let reportType = reg.tipoReporte ? reg.tipoReporte.toLowerCase() : "islero";
+                document.getElementById('tipoReporte').value = reportType;
                 cambiarTipoReporte();
                 document.getElementById('nombrePersona').value = reg.nombre;
                 document.getElementById('fecha').value = reg.fechaReporte;
@@ -338,15 +339,14 @@
                 rellenarListaDinamica('listaDatafono', 'datafono-val', reg.datafonoLista);
                 rellenarListaDinamica('listaAditivos', 'aditivo-val', reg.aditivosLista);
 
-                // ACTIVAR MODO EDICIÓN EXPLÍCITO
                 modoEdicion = true;
-                document.getElementById('badgeModo').innerText = "V.2140 (Modificando)";
+                document.getElementById('badgeModo').innerText = "V.2200 (Modificando)";
                 document.getElementById('badgeModo').className = "badge bg-warning text-dark px-3 py-2 rounded-pill";
                 document.getElementById('btnAccion').innerText = "✏️ Actualizar Este Registro";
                 document.getElementById('btnAccion').className = "btn btn-modern-warning fw-bold text-dark";
 
                 calcularArqueo();
-                alert('¡Datos de ' + reg.nombre + ' cargados para edición! Al guardar se actualizará este mismo registro.');
+                alert('¡Datos de ' + reg.nombre + ' cargados para edición!');
             })
             .catch(err => { alert('Error al cargar el registro: ' + err); });
     }
@@ -388,53 +388,7 @@
             const subtotal = denom * (parseInt(input.value) || 0);
             if (input.dataset.tipo === 'billete') vlrBilletes += subtotal;
             else vlrMonedas += subtotal;
-            document.getElementById(`sub_${input.dataset.index}`).innerText = `$ ${subtotal.toLocaleString('es-CO')}`;
-        });
-
-        const totalDinero = vlrBilletes + vlrMonedas;
-        document.getElementById('lblVlrBilletes').innerText = `$ ${vlrBilletes.toLocaleString('es-CO')}`;
-        document.getElementById('lblVlrMonedas').innerText = `$ ${vlrMonedas.toLocaleString('es-CO')}`;
-        document.getElementById('lblTotalDinero').innerText = `$ ${totalDinero.toLocaleString('es-CO')}`;
-
-        const tipoReporte = document.getElementById('tipoReporte').value;
-        const totalVenta = parseCurrency(document.getElementById('totalVenta').value);
-        let totalArqueo = totalDinero;
-
-        if (tipoReporte === 'islero') {
-            let totalCreditos = 0, totalDatafono = 0, totalAditivos = 0;
-            document.querySelectorAll('.credito-val').forEach(i => totalCreditos += parseCurrency(i.value));
-            document.querySelectorAll('.datafono-val').forEach(i => totalDatafono += parseCurrency(i.value));
-            document.querySelectorAll('.aditivo-val').forEach(i => totalAditivos += parseCurrency(i.value));
-
-            document.getElementById('lblTotalCreditos').innerText = `$ ${totalCreditos.toLocaleString('es-CO')}`;
-            document.getElementById('lblTotalDatafono').innerText = `$ ${totalDatafono.toLocaleString('es-CO')}`;
-            document.getElementById('lblTotalAditivos').innerText = `$ ${totalAditivos.toLocaleString('es-CO')}`;
-
-            // Los aditivos suman al arqueo de caja (porque representan recaudo o producto entregado en efectivo/crédito)
-            totalArqueo = totalDinero + totalCreditos + totalDatafono + totalAditivos;
-
-            document.getElementById('resTotalCreditos').innerText = `$ ${totalCreditos.toLocaleString('es-CO')}`;
-            document.getElementById('resTotalDatafono').innerText = `$ ${totalDatafono.toLocaleString('es-CO')}`;
-            document.getElementById('resTotalAditivos').innerText = `$ ${totalAditivos.toLocaleString('es-CO')}`;
-
-            const diferencia = totalArqueo - totalVenta;
-            const lblDiferencia = document.getElementById('resDiferencia');
-            lblDiferencia.innerText = `$ ${diferencia.toLocaleString('es-CO')}`;
-            if (diferencia === 0) {
-                lblDiferencia.className = "float-end fw-bold text-success";
-                lblDiferencia.innerText += " (CUADRADO)";
-            } else if (diferencia > 0) {
-                lblDiferencia.className = "float-end fw-bold text-primary";
-                lblDiferencia.innerText += " (SOBRANTE)";
-            } else {
-                lblDiferencia.className = "float-end fw-bold text-danger";
-                lblDiferencia.innerText += " (FALTANTE)";
-            }
-        }
-
-        document.getElementById('resTotalVenta').innerText = `$ ${totalVenta.toLocaleString('es-CO')}`;
-        document.getElementById('resVlrBilletes').innerText = `$ ${totalDinero.toLocaleString('es-CO')}`;
-        document.getElementById('resTotalArqueo').innerText = `$ ${totalArqueo.toLocaleString('es-CO')}`;
+            document.getElementById(`sub_${input.dataset.index}`).innerText = `$ ${subtotal.toLocaleString('es-CO')}`; });  const totalDinero = vlrBilletes + vlrMonedas; document.getElementById('lblVlrBilletes').innerText = `$ ${vlrBilletes.toLocaleString('es-CO')}`; document.getElementById('lblVlrMonedas').innerText = `$ ${vlrMonedas.toLocaleString('es-CO')}`; document.getElementById('lblTotalDinero').innerText = `$ ${totalDinero.toLocaleString('es-CO')}`;  const tipoReporte = document.getElementById('tipoReporte').value; const totalVenta = parseCurrency(document.getElementById('totalVenta').value); let totalArqueo = totalDinero;  if (tipoReporte === 'islero') { let totalCreditos = 0, totalDatafono = 0, totalAditivos = 0; document.querySelectorAll('.credito-val').forEach(i => totalCreditos += parseCurrency(i.value)); document.querySelectorAll('.datafono-val').forEach(i => totalDatafono += parseCurrency(i.value)); document.querySelectorAll('.aditivo-val').forEach(i => totalAditivos += parseCurrency(i.value));  document.getElementById('lblTotalCreditos').innerText = `$ ${totalCreditos.toLocaleString('es-CO')}`; document.getElementById('lblTotalDatafono').innerText = `$ ${totalDatafono.toLocaleString('es-CO')}`; document.getElementById('lblTotalAditivos').innerText = `$ ${totalAditivos.toLocaleString('es-CO')}`;  totalArqueo = totalDinero + totalCreditos + totalDatafono + totalAditivos;  document.getElementById('resTotalCreditos').innerText = `$ ${totalCreditos.toLocaleString('es-CO')}`; document.getElementById('resTotalDatafono').innerText = `$ ${totalDatafono.toLocaleString('es-CO')}`; document.getElementById('resTotalAditivos').innerText = `$ ${totalAditivos.toLocaleString('es-CO')}`;  const diferencia = totalArqueo - totalVenta; const lblDiferencia = document.getElementById('resDiferencia'); lblDiferencia.innerText = `$ ${diferencia.toLocaleString('es-CO')}`; if (diferencia === 0) { lblDiferencia.className = "float-end fw-bold text-success"; lblDiferencia.innerText += " (CUADRADO)"; } else if (diferencia > 0) { lblDiferencia.className = "float-end fw-bold text-primary"; lblDiferencia.innerText += " (SOBRANTE)"; } else { lblDiferencia.className = "float-end fw-bold text-danger"; lblDiferencia.innerText += " (FALTANTE)"; } }  document.getElementById('resTotalVenta').innerText = `$ ${totalVenta.toLocaleString('es-CO')}`; document.getElementById('resVlrBilletes').innerText = `$ ${totalDinero.toLocaleString('es-CO')}`; document.getElementById('resTotalArqueo').innerText = `$ ${totalArqueo.toLocaleString('es-CO')}`;
     }
 
     function nuevoArqueo() {
@@ -446,7 +400,7 @@
             document.querySelectorAll('#tablaBilletes input').forEach(i => i.value = '0');
             inicializarFilasDinamicas();
             modoEdicion = false;
-            document.getElementById('badgeModo').innerText = "V.2140";
+            document.getElementById('badgeModo').innerText = "V.2200";
             document.getElementById('badgeModo').className = "badge bg-primary px-3 py-2 rounded-pill";
             document.getElementById('btnAccion').innerText = "☁️ Guardar como Nuevo Registro";
             document.getElementById('btnAccion').className = "btn btn-modern-primary";
@@ -458,7 +412,7 @@
         const nombre = document.getElementById('nombrePersona').value.trim();
         if (!nombre) { alert('Por favor ingrese o seleccione el nombre.'); return; }
         
-        const tipoMovimiento = document.getElementById('tipoMovimiento').value; // INGRESO o SALIDA
+        const tipoMovimiento = document.getElementById('tipoMovimiento').value;
         const tipoReporte = document.getElementById('tipoReporte').value;
         let cantidades = {};
         document.querySelectorAll('#tablaBilletes input').forEach(i => cantidades[i.dataset.key] = parseInt(i.value) || 0);
@@ -469,8 +423,9 @@
         document.querySelectorAll('.aditivo-val').forEach(i => { if(parseCurrency(i.value)>0) aditivosArr.push(parseCurrency(i.value)); });
 
         const datos = {
-            accion: modoEdicion ? "actualizar" : "crear", // Si cargó registro previo actualiza, sino crea nuevo
-            tipo: tipoMovimiento, // Guarda INGRESO o SALIDA en la columna C
+            accion: modoEdicion ? "actualizar" : "crear",
+            tipoMovimiento: tipoMovimiento,
+            tipoReporte: tipoReporte.toUpperCase(),
             nombre: nombre.toUpperCase(),
             fecha: document.getElementById('fecha').value,
             totalVenta: parseCurrency(document.getElementById('totalVenta').value),
@@ -499,7 +454,7 @@
             headers: { 'Content-Type': 'text/plain;charset=utf-8' },
             body: JSON.stringify(datos)
         }).then(() => {
-            alert(modoEdicion ? '¡Registro actualizado exitosamente en su misma fila!' : '¡Nuevo registro guardado exitosamente!');
+            alert(modoEdicion ? '¡Registro actualizado exitosamente!' : '¡Nuevo registro guardado exitosamente!');
             btn.innerText = originalText;
             btn.disabled = false;
             nuevoArqueo();
