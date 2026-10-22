@@ -19,6 +19,9 @@
         .btn-modern-primary { background: linear-gradient(135deg, #0d6efd, #0b5ed7); color: white; border: none; border-radius: 8px; padding: 10px 20px; font-weight: 600; box-shadow: 0 4px 10px rgba(13,110,253,0.3); transition: all 0.3s; }
         .btn-modern-primary:hover { background: linear-gradient(135deg, #1b78ff, #0d6efd); color: #fff; transform: translateY(-2px); }
 
+        .btn-modern-warning { background: linear-gradient(135deg, #ffc107, #ff9800); color: #000; border: none; border-radius: 8px; padding: 10px 20px; font-weight: 600; box-shadow: 0 4px 10px rgba(255,193,7,0.3); transition: all 0.3s; }
+        .btn-modern-warning:hover { background: linear-gradient(135deg, #ffca2c, #f57c00); color: #000; transform: translateY(-2px); }
+
         .btn-modern-success { background: linear-gradient(135deg, #198754, #157347); color: white; border: none; border-radius: 8px; padding: 12px 24px; font-weight: 600; box-shadow: 0 4px 10px rgba(25,135,84,0.3); transition: all 0.3s; }
         .btn-modern-success:hover { background: linear-gradient(135deg, #20c997, #198754); color: #fff; transform: translateY(-2px); }
 
@@ -32,9 +35,6 @@
         }
     </style>
 </head>
-
-      
-    
 <body>
 <div class="container my-4">
     <div class="text-center mb-4 p-4 bg-white shadow-sm rounded-4 border-0">
@@ -47,7 +47,7 @@
     <div class="row mb-4 no-print align-items-center g-3">
         <div class="col-md-6 d-flex align-items-center gap-3">
             <a href="consultas.html" class="btn btn-modern-dark text-center flex-grow-1">🔍 Ir al Módulo de Filtros, Consultas y Dashboard →</a>
-            <span class="badge bg-primary px-3 py-2 rounded-pill" id="badgeModo">V1.1111</span>
+            <span class="badge bg-primary px-3 py-2 rounded-pill" id="badgeModo">V.2140</span>
         </div>
         <div class="col-md-6">
             <button class="btn btn-modern-outline w-100" type="button" data-bs-toggle="collapse" data-bs-target="#collapseCargar">
@@ -65,8 +65,8 @@
                     <input type="date" class="form-control" id="buscarFecha">
                 </div>
                 <div class="col-md-4">
-                    <label class="form-label fw-bold">Nombre del Responsable</label>
-                    <input type="text" class="form-control" id="buscarNombre" placeholder="Ej. ANDRES o ROBINSON">
+                    <label class="form-label fw-bold">Nombre del Responsable / Concepto</label>
+                    <input type="text" class="form-control" id="buscarNombre" placeholder="Ej. DANILO o VICENTE">
                 </div>
                 <div class="col-md-4">
                     <button type="button" class="btn btn-modern-primary w-100" onclick="cargarDatoAnterior()">📥 Cargar al Formulario</button>
@@ -79,7 +79,14 @@
         <h5 class="card-title text-secondary border-bottom pb-2 mb-3">1. Información General</h5>
         <div class="row g-3">
             <div class="col-md-3">
-                <label for="tipoReporte" class="form-label fw-bold">Tipo de Reporte</label>
+                <label for="tipoMovimiento" class="form-label fw-bold">Tipo (Ingreso / Salida)</label>
+                <select class="form-select fw-bold text-primary" id="tipoMovimiento">
+                    <option value="INGRESO">🟢 INGRESO (Arqueo / Turno)</option>
+                    <option value="SALIDA">🔴 SALIDA (Pago Vicente / Combustible / Gasto)</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label for="tipoReporte" class="form-label fw-bold">Área / Rol</label>
                 <select class="form-select" id="tipoReporte" onchange="cambiarTipoReporte()">
                     <option value="islero">Arqueo de Islero</option>
                     <option value="mensajero">Consolidado Mensajero (Consignación)</option>
@@ -88,14 +95,14 @@
                 </select>
             </div>
             <div class="col-md-3">
-                <label for="nombrePersona" class="form-label fw-bold" id="labelNombre">Nombre del Islero</label>
+                <label for="nombrePersona" class="form-label fw-bold" id="labelNombre">Nombre del Responsable</label>
                 <input class="form-control" list="listaNombres" id="nombrePersona" placeholder="Escribe o selecciona..." autocomplete="off">
                 <datalist id="listaNombres">
                     <option value="DANILO">
                     <option value="ROBINSON">
                     <option value="CARLOS">
                     <option value="STEFANY">
-                    <option value="ANDRES">
+                    <option value="VICENTE">
                 </datalist>
             </div>
             <div class="col-md-3">
@@ -140,7 +147,7 @@
     </div>
 
     <div class="row" id="seccionOtros">
-        <div class="col-md-3">
+        <div class="col-md-4">
             <div class="card p-4 h-100">
                 <h6 class="text-secondary border-bottom pb-2 mb-3">3. Créditos / Vales</h6>
                 <div id="listaCreditos"></div>
@@ -148,7 +155,7 @@
                 <div class="mt-3 text-end fw-bold">Total Créditos: <span id="lblTotalCreditos" class="text-success">$ 0</span></div>
             </div>
         </div>
-        <div class="col-md-3">
+        <div class="col-md-4">
             <div class="card p-4 h-100">
                 <h6 class="text-secondary border-bottom pb-2 mb-3">4. Ventas Datáfono</h6>
                 <div id="listaDatafono"></div>
@@ -156,20 +163,12 @@
                 <div class="mt-3 text-end fw-bold">Total Datáfono: <span id="lblTotalDatafono" class="text-success">$ 0</span></div>
             </div>
         </div>
-        <div class="col-md-3">
+        <div class="col-md-4">
             <div class="card p-4 h-100">
-                <h6 class="text-secondary border-bottom pb-2 mb-3">5. Aditivos</h6>
+                <h6 class="text-secondary border-bottom pb-2 mb-3">5. Aditivos (Suman a Venta y Arqueo)</h6>
                 <div id="listaAditivos"></div>
                 <button type="button" class="btn btn-sm btn-outline-primary mt-2 no-print rounded-pill" onclick="agregarFila('listaAditivos', 'aditivo-val')">+ Agregar Aditivo</button>
                 <div class="mt-3 text-end fw-bold">Total Aditivos: <span id="lblTotalAditivos" class="text-success">$ 0</span></div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card p-4 h-100">
-                <h6 class="text-secondary border-bottom pb-2 mb-3">6. Gastos / Salidas (Ej. Vicente)</h6>
-                <div id="listaGastos"></div>
-                <button type="button" class="btn btn-sm btn-outline-danger mt-2 no-print rounded-pill" onclick="agregarFila('listaGastos', 'gasto-val')">+ Agregar Gasto</button>
-                <div class="mt-3 text-end fw-bold">Total Gastos: <span id="lblTotalGastos" class="text-danger">$ 0</span></div>
             </div>
         </div>
     </div>
@@ -177,16 +176,14 @@
     <div class="card p-4 mt-4 bg-white border-0">
         <h4 class="text-primary mb-3 text-center fw-bold" id="tituloResumen">Resumen de Cierre de Caja</h4>
         <div class="row summary-box mb-4">
-            <div class="col-md-6 mb-2"><strong>Total Venta del Día (Incluye Aditivos):</strong> <span id="resTotalVenta" class="float-end">$ 0</span></div>
-            <div class="col-md-6 mb-2"><strong>Total Efectivo en Caja:</strong> <span id="resVlrBilletesMonedas" class="float-end">$ 0</span></div>
+            <div class="col-md-6 mb-2"><strong>Total Venta del Día (Combustible + Aditivos):</strong> <span id="resTotalVenta" class="float-end">$ 0</span></div>
+            <div class="col-md-6 mb-2"><strong>Total Efectivo Billetes y Monedas:</strong> <span id="resVlrBilletes" class="float-end">$ 0</span></div>
             <div class="col-md-6 mb-2" id="filaResCreditos"><strong>Recibos / Vales / Créditos:</strong> <span id="resTotalCreditos" class="float-end">$ 0</span></div>
             <div class="col-md-6 mb-2" id="filaResDatafono"><strong>Ventas Datáfono:</strong> <span id="resTotalDatafono" class="float-end">$ 0</span></div>
             <div class="col-md-6 mb-2" id="filaResAditivos"><strong>Aditivos:</strong> <span id="resTotalAditivos" class="float-end">$ 0</span></div>
-            <div class="col-md-6 mb-2" id="filaResGastos"><strong>Gastos / Salidas Pagadas en Turno:</strong> <span id="resTotalGastos" class="float-end text-danger">$ 0</span></div>
             <div class="col-md-12"><hr></div>
             <div class="col-md-6 fs-5"><strong>Total Arqueo General:</strong> <span id="resTotalArqueo" class="float-end fw-bold text-primary">$ 0</span></div>
             <div class="col-md-6 fs-5" id="filaResDiferencia"><strong>Diferencia (Cuadre):</strong> <span id="resDiferencia" class="float-end fw-bold">$ 0</span></div>
-            <div class="col-md-12 mt-2" id="filaNetoConsignar"><strong>Neto Real a Consignar (Efectivo - Gastos):</strong> <span id="resNetoConsignar" class="float-end fw-bold text-success fs-5">$ 0</span></div>
         </div>
 
         <div class="text-center no-print d-flex justify-content-center gap-3">
@@ -199,9 +196,8 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-    const URL_WEB_APP = "https://script.google.com/macros/s/AKfycbzoU6tg-N8j5YdrzrhanimnPcEP60t5g5jEB5JbWw-R4GcLgonSpODOpgHxpSXlrMgS/exec";
-    
-    let modoEdicion = false; // False = Guarda nuevo registro / True = Actualiza registro cargado
+    const URL_WEB_APP = "https://script.google.com/macros/s/AKfycbyKuBctOHz_mOqQNqkj48f_HztRGBZVZqtCCw8X5cZ105cfgteknUlxRl3pM3RqXxeh/exec";
+    let modoEdicion = false; // False = Crea nuevo / True = Actualiza registro cargado
 
     const denominaciones = [
         {val: 100000, tipo: 'billete', label: '100.000 (Billete)', key: 'b100000'},
@@ -243,11 +239,9 @@
         document.getElementById('listaCreditos').innerHTML = '';
         document.getElementById('listaDatafono').innerHTML = '';
         document.getElementById('listaAditivos').innerHTML = '';
-        document.getElementById('listaGastos').innerHTML = '';
         agregarFila('listaCreditos', 'credito-val', 0);
         agregarFila('listaDatafono', 'datafono-val', 0);
         agregarFila('listaAditivos', 'aditivo-val', 0);
-        agregarFila('listaGastos', 'gasto-val', 0);
     }
 
     function cambiarTipoReporte() {
@@ -258,21 +252,17 @@
         const filaResCreditos = document.getElementById('filaResCreditos');
         const filaResDatafono = document.getElementById('filaResDatafono');
         const filaResAditivos = document.getElementById('filaResAditivos');
-        const filaResGastos = document.getElementById('filaResGastos');
         const filaResDiferencia = document.getElementById('filaResDiferencia');
-        const filaNetoConsignar = document.getElementById('filaNetoConsignar');
 
         if (tipo === 'mensajero' || tipo === 'aire' || tipo === 'bano') {
             labelNombre.innerText = "Nombre del Responsable";
             document.getElementById('nombrePersona').placeholder = "Ej. Robinson";
             seccionOtros.style.display = 'none';
-            tituloResumen.innerText = "Resumen de Consignación y Gastos";
+            tituloResumen.innerText = "Resumen de Consignación";
             filaResCreditos.style.display = 'none';
             filaResDatafono.style.display = 'none';
             filaResAditivos.style.display = 'none';
-            filaResGastos.style.display = 'block';
             filaResDiferencia.style.display = 'none';
-            filaNetoConsignar.style.display = 'block';
         } else {
             labelNombre.innerText = "Nombre del Islero";
             document.getElementById('nombrePersona').placeholder = "Ej. Danilo";
@@ -281,9 +271,7 @@
             filaResCreditos.style.display = 'block';
             filaResDatafono.style.display = 'block';
             filaResAditivos.style.display = 'block';
-            filaResGastos.style.display = 'block';
             filaResDiferencia.style.display = 'block';
-            filaNetoConsignar.style.display = 'block';
         }
         calcularArqueo();
     }
@@ -322,7 +310,8 @@
                 }
 
                 const reg = data[0];
-                document.getElementById('tipoReporte').value = reg.tipo.toLowerCase();
+                document.getElementById('tipoMovimiento').value = (reg.tipo === "SALIDA" ? "SALIDA" : "INGRESO");
+                document.getElementById('tipoReporte').value = reg.tipo.toLowerCase() === "salida" ? "mensajero" : "islero";
                 cambiarTipoReporte();
                 document.getElementById('nombrePersona').value = reg.nombre;
                 document.getElementById('fecha').value = reg.fechaReporte;
@@ -348,13 +337,12 @@
                 rellenarListaDinamica('listaCreditos', 'credito-val', reg.creditosLista);
                 rellenarListaDinamica('listaDatafono', 'datafono-val', reg.datafonoLista);
                 rellenarListaDinamica('listaAditivos', 'aditivo-val', reg.aditivosLista);
-                // Nota: Los gastos se pueden mantener limpios o cargados si se requiere en futuras versiones
 
-                // ACTIVAR MODO EDICIÓN
+                // ACTIVAR MODO EDICIÓN EXPLÍCITO
                 modoEdicion = true;
-                document.getElementById('badgeModo').innerText = "V.1940 (Modificando)";
+                document.getElementById('badgeModo').innerText = "V.2140 (Modificando)";
                 document.getElementById('badgeModo').className = "badge bg-warning text-dark px-3 py-2 rounded-pill";
-                document.getElementById('btnAccion').innerText = "✏️ Actualizar este Registro";
+                document.getElementById('btnAccion').innerText = "✏️ Actualizar Este Registro";
                 document.getElementById('btnAccion').className = "btn btn-modern-warning fw-bold text-dark";
 
                 calcularArqueo();
@@ -410,36 +398,25 @@
 
         const tipoReporte = document.getElementById('tipoReporte').value;
         const totalVenta = parseCurrency(document.getElementById('totalVenta').value);
-        
-        let totalCreditos = 0, totalDatafono = 0, totalAditivos = 0, totalGastos = 0;
-        
-        document.querySelectorAll('.credito-val').forEach(i => totalCreditos += parseCurrency(i.value));
-        document.querySelectorAll('.datafono-val').forEach(i => totalDatafono += parseCurrency(i.value));
-        document.querySelectorAll('.aditivo-val').forEach(i => totalAditivos += parseCurrency(i.value));
-        document.querySelectorAll('.gasto-val').forEach(i => totalGastos += parseCurrency(i.value));
-
-        // El total arqueo suma el efectivo + créditos + datáfono + aditivos
-        let totalArqueo = totalDinero + totalCreditos + totalDatafono + totalAditivos;
-
-        // El neto real que queda en efectivo para consignar (restando los gastos pagados en efectivo como Vicente)
-        let netoConsignar = totalDinero - totalGastos;
-
-        // Actualizar etiquetas en pantalla
-        document.getElementById('lblTotalCreditos').innerText = `$ ${totalCreditos.toLocaleString('es-CO')}`;
-        document.getElementById('lblTotalDatafono').innerText = `$ ${totalDatafono.toLocaleString('es-CO')}`;
-        document.getElementById('lblTotalAditivos').innerText = `$ ${totalAditivos.toLocaleString('es-CO')}`;
-        document.getElementById('lblTotalGastos').innerText = `$ ${totalGastos.toLocaleString('es-CO')}`;
-
-        document.getElementById('resTotalVenta').innerText = `$ ${totalVenta.toLocaleString('es-CO')}`;
-        document.getElementById('resVlrBilletesMonedas').innerText = `$ ${totalDinero.toLocaleString('es-CO')}`;
-        document.getElementById('resTotalCreditos').innerText = `$ ${totalCreditos.toLocaleString('es-CO')}`;
-        document.getElementById('resTotalDatafono').innerText = `$ ${totalDatafono.toLocaleString('es-CO')}`;
-        document.getElementById('resTotalAditivos').innerText = `$ ${totalAditivos.toLocaleString('es-CO')}`;
-        document.getElementById('resTotalGastos').innerText = `$ ${totalGastos.toLocaleString('es-CO')}`;
-        document.getElementById('resTotalArqueo').innerText = `$ ${totalArqueo.toLocaleString('es-CO')}`;
-        document.getElementById('resNetoConsignar').innerText = `$ ${netoConsignar.toLocaleString('es-CO')}`;
+        let totalArqueo = totalDinero;
 
         if (tipoReporte === 'islero') {
+            let totalCreditos = 0, totalDatafono = 0, totalAditivos = 0;
+            document.querySelectorAll('.credito-val').forEach(i => totalCreditos += parseCurrency(i.value));
+            document.querySelectorAll('.datafono-val').forEach(i => totalDatafono += parseCurrency(i.value));
+            document.querySelectorAll('.aditivo-val').forEach(i => totalAditivos += parseCurrency(i.value));
+
+            document.getElementById('lblTotalCreditos').innerText = `$ ${totalCreditos.toLocaleString('es-CO')}`;
+            document.getElementById('lblTotalDatafono').innerText = `$ ${totalDatafono.toLocaleString('es-CO')}`;
+            document.getElementById('lblTotalAditivos').innerText = `$ ${totalAditivos.toLocaleString('es-CO')}`;
+
+            // Los aditivos suman al arqueo de caja (porque representan recaudo o producto entregado en efectivo/crédito)
+            totalArqueo = totalDinero + totalCreditos + totalDatafono + totalAditivos;
+
+            document.getElementById('resTotalCreditos').innerText = `$ ${totalCreditos.toLocaleString('es-CO')}`;
+            document.getElementById('resTotalDatafono').innerText = `$ ${totalDatafono.toLocaleString('es-CO')}`;
+            document.getElementById('resTotalAditivos').innerText = `$ ${totalAditivos.toLocaleString('es-CO')}`;
+
             const diferencia = totalArqueo - totalVenta;
             const lblDiferencia = document.getElementById('resDiferencia');
             lblDiferencia.innerText = `$ ${diferencia.toLocaleString('es-CO')}`;
@@ -454,17 +431,22 @@
                 lblDiferencia.innerText += " (FALTANTE)";
             }
         }
+
+        document.getElementById('resTotalVenta').innerText = `$ ${totalVenta.toLocaleString('es-CO')}`;
+        document.getElementById('resVlrBilletes').innerText = `$ ${totalDinero.toLocaleString('es-CO')}`;
+        document.getElementById('resTotalArqueo').innerText = `$ ${totalArqueo.toLocaleString('es-CO')}`;
     }
 
     function nuevoArqueo() {
         if (confirm("¿Deseas limpiar el formulario para un nuevo registro?")) {
             document.getElementById('nombrePersona').value = '';
             document.getElementById('totalVenta').value = '';
+            document.getElementById('tipoMovimiento').value = 'INGRESO';
             document.getElementById('fecha').valueAsDate = new Date();
             document.querySelectorAll('#tablaBilletes input').forEach(i => i.value = '0');
             inicializarFilasDinamicas();
             modoEdicion = false;
-            document.getElementById('badgeModo').innerText = "V.1940";
+            document.getElementById('badgeModo').innerText = "V.2140";
             document.getElementById('badgeModo').className = "badge bg-primary px-3 py-2 rounded-pill";
             document.getElementById('btnAccion').innerText = "☁️ Guardar como Nuevo Registro";
             document.getElementById('btnAccion').className = "btn btn-modern-primary";
@@ -476,19 +458,19 @@
         const nombre = document.getElementById('nombrePersona').value.trim();
         if (!nombre) { alert('Por favor ingrese o seleccione el nombre.'); return; }
         
+        const tipoMovimiento = document.getElementById('tipoMovimiento').value; // INGRESO o SALIDA
         const tipoReporte = document.getElementById('tipoReporte').value;
         let cantidades = {};
         document.querySelectorAll('#tablaBilletes input').forEach(i => cantidades[i.dataset.key] = parseInt(i.value) || 0);
 
-        let creditosArr = [], datafonoArr = [], aditivosArr = [], gastosArr = [];
+        let creditosArr = [], datafonoArr = [], aditivosArr = [];
         document.querySelectorAll('.credito-val').forEach(i => { if(parseCurrency(i.value)>0) creditosArr.push(parseCurrency(i.value)); });
         document.querySelectorAll('.datafono-val').forEach(i => { if(parseCurrency(i.value)>0) datafonoArr.push(parseCurrency(i.value)); });
         document.querySelectorAll('.aditivo-val').forEach(i => { if(parseCurrency(i.value)>0) aditivosArr.push(parseCurrency(i.value)); });
-        document.querySelectorAll('.gasto-val').forEach(i => { if(parseCurrency(i.value)>0) gastosArr.push(parseCurrency(i.value)); });
 
         const datos = {
-            accion: modoEdicion ? "actualizar" : "crear", // Envía la instrucción exacta al servidor
-            tipo: tipoReporte,
+            accion: modoEdicion ? "actualizar" : "crear", // Si cargó registro previo actualiza, sino crea nuevo
+            tipo: tipoMovimiento, // Guarda INGRESO o SALIDA en la columna C
             nombre: nombre.toUpperCase(),
             fecha: document.getElementById('fecha').value,
             totalVenta: parseCurrency(document.getElementById('totalVenta').value),
@@ -517,7 +499,7 @@
             headers: { 'Content-Type': 'text/plain;charset=utf-8' },
             body: JSON.stringify(datos)
         }).then(() => {
-            alert(modoEdicion ? '¡Registro actualizado exitosamente en su misma fila!' : '¡Nuevo reporte guardado exitosamente!');
+            alert(modoEdicion ? '¡Registro actualizado exitosamente en su misma fila!' : '¡Nuevo registro guardado exitosamente!');
             btn.innerText = originalText;
             btn.disabled = false;
             nuevoArqueo();
