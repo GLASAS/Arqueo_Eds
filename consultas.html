@@ -30,7 +30,7 @@
 <body>
 <div class="container my-5">
     <div class="text-center mb-4 p-4 bg-white shadow-sm rounded-4 border-0 position-relative">
-        <span class="badge bg-primary px-3 py-2 rounded-pill position-absolute top-0 end-0 m-3">Versión V.1156</span>
+        <span class="badge bg-primary px-3 py-2 rounded-pill position-absolute top-0 end-0 m-3">Versión V.1200</span>
         <img src="logo biomax.png" alt="Logo Biomax" class="station-logo mb-2">
         <h2 class="fw-bold text-primary mb-1">Estación de Servicio Biomax Orquideas</h2>
         <p class="text-muted mb-0">Dashboard Gerencial, Desglose de Consignaciones y Consultas por Fecha de Ingreso</p>
@@ -162,6 +162,7 @@
             .then(data => {
                 if (!data) return;
 
+                // 1. Mes Actual (Columna B - Fecha Reporte)
                 const registrosMes = data.filter(r => r.fechaReporte && r.fechaReporte.startsWith(mesSeleccionado));
 
                 let totalVentasMes = 0;
@@ -172,13 +173,13 @@
                 registrosMes.forEach(r => {
                     let vta = Number(r.totalVenta) || 0;
                     let efectivo = Number(r.totalDinero) || 0;
-                    let tipoRep = r.tipoReporte ? r.tipoReporte.toUpperCase().trim() : "";
+                    let tipo = r.tipo ? r.tipo.toUpperCase().trim() : "";
                     let nombre = r.nombre ? r.nombre.toUpperCase().trim() : "";
 
                     totalVentasMes += vta;
-                    if (tipoRep === "ISLERO") {
+                    if (tipo === "ISLERO") {
                         recaudosIslerosMes[nombre] = (recaudosIslerosMes[nombre] || 0) + efectivo;
-                    } else if (tipoRep === "MENSAJERO" && nombre.includes("ROBINSON")) {
+                    } else if (tipo === "MENSAJERO" && nombre.includes("ROBINSON")) {
                         totalConsignacionesMes += efectivo;
                         totalRobinsonMes += efectivo;
                     }
@@ -190,6 +191,7 @@
                 }
                 if (!islerosMesHtml) islerosMesHtml = "<span>Sin registros en el mes</span>";
 
+                // 2. Semana en Curso (Lunes a Domingo por Columna B - Fecha Reporte)
                 const rangoSemana = obtenerRangoSemanaActual();
                 const registrosSemana = data.filter(r => r.fechaReporte && r.fechaReporte >= rangoSemana.lunesStr && r.fechaReporte <= rangoSemana.domingoStr);
 
@@ -199,16 +201,16 @@
 
                 registrosSemana.forEach(r => {
                     let efectivo = Number(r.totalDinero) || 0;
-                    let tipoRep = r.tipoReporte ? r.tipoReporte.toUpperCase().trim() : "";
+                    let tipo = r.tipo ? r.tipo.toUpperCase().trim() : "";
                     let nombre = r.nombre ? r.nombre.toUpperCase().trim() : "";
 
-                    if (tipoRep === "ISLERO" || tipoRep === "AIRE" || tipoRep === "BAÑO") {
+                    if (tipo === "ISLERO" || tipo === "AIRE" || tipo === "BAÑO") {
                         totalVentasSemana += efectivo;
                     }
 
-                    if (tipoRep === "ISLERO") {
+                    if (tipo === "ISLERO") {
                         recaudosIslerosSemana[nombre] = (recaudosIslerosSemana[nombre] || 0) + efectivo;
-                    } else if (tipoRep === "MENSAJERO" && nombre.includes("ROBINSON")) {
+                    } else if (tipo === "MENSAJERO" && nombre.includes("ROBINSON")) {
                         totalRobinsonSemana += efectivo;
                     }
                 });
@@ -219,15 +221,16 @@
                 }
                 if (!islerosSemanaHtml) islerosSemanaHtml = "<span>Sin registros en la semana</span>";
 
+                // 3. Día Anterior (Por Columna B - Fecha Reporte)
                 const diaAnteriorStr = obtenerDiaAnteriorStr();
                 const registrosAyer = data.filter(r => r.fechaReporte && r.fechaReporte === diaAnteriorStr);
 
                 let recaudosAyer = {};
                 registrosAyer.forEach(r => {
                     let efectivo = Number(r.totalDinero) || 0;
-                    let tipoRep = r.tipoReporte ? r.tipoReporte.toUpperCase().trim() : "";
+                    let tipo = r.tipo ? r.tipo.toUpperCase().trim() : "";
                     let nombre = r.nombre ? r.nombre.toUpperCase().trim() : "";
-                    if (tipoRep === "ISLERO" || tipoRep === "AIRE" || tipoRep === "BAÑO") {
+                    if (tipo === "ISLERO" || tipo === "AIRE" || tipo === "BAÑO") {
                         recaudosAyer[nombre] = (recaudosAyer[nombre] || 0) + efectivo;
                     }
                 });
@@ -305,6 +308,7 @@
                     return;
                 }
 
+                // Filtrar estrictamente solo los que coinciden con la Fecha de Ingreso seleccionada (Columna A)
                 let registrosFechaIngreso = data.filter(row => row.fechaIngreso === fechaIngreso);
 
                 if (registrosFechaIngreso.length === 0) {
@@ -319,19 +323,19 @@
 
                 registrosFechaIngreso.forEach(row => {
                     let efectivo = Number(row.totalDinero) || 0;
-                    let tipoRep = row.tipoReporte ? row.tipoReporte.toUpperCase().trim() : "";
+                    let tipo = row.tipo ? row.tipo.toUpperCase().trim() : "";
                     let nombre = row.nombre ? row.nombre.toUpperCase().trim() : "";
 
-                    if (tipoRep === "ISLERO" || tipoRep === "AIRE" || tipoRep === "BAÑO") {
+                    if (tipo === "ISLERO" || tipo === "AIRE" || tipo === "BAÑO") {
                         totalEntradas += efectivo;
-                        let etiqueta = tipoRep === "ISLERO" ? `Islero (${nombre})` : `${tipoRep} (${nombre})`;
+                        let etiqueta = tipo === "ISLERO" ? `Islero (${nombre})` : `${tipo} (${nombre})`;
                         desgloseEntradasHtml += `
                             <div class="d-flex justify-content-between small mb-1">
                                 <span class="fw-semibold text-secondary">${etiqueta}:</span>
                                 <span class="fw-bold">$ ${efectivo.toLocaleString('es-CO')}</span>
                             </div>
                         `;
-                    } else if (tipoRep === "MENSAJERO" && nombre.includes("ROBINSON")) {
+                    } else if (tipo === "MENSAJERO" && nombre.includes("ROBINSON")) {
                         totalRobinson += efectivo;
                     }
                 });
@@ -361,6 +365,7 @@
                 }
                 seccionVal.style.display = 'block';
 
+                // Detalle de Registro estrictamente por Fecha de Ingreso (Columna A)
                 let html = `
                     <div class="table-responsive">
                         <table class="table table-bordered table-striped table-sm align-middle">
@@ -368,7 +373,7 @@
                                 <tr>
                                     <th>Nombre</th>
                                     <th>Fecha Reporte</th>
-                                    <th>Tipo Reporte</th>
+                                    <th>Tipo</th>
                                     <th>Total Venta</th>
                                     <th>Efectivo</th>
                                     <th>Créditos</th>
@@ -389,7 +394,7 @@
                     let dataf = Number(row.totalDatafono) || 0;
                     let adit = Number(row.totalAditivos) || 0;
                     let dif = Number(row.diferencia) || 0;
-                    let tipoRep = row.tipoReporte || "";
+                    let tipo = row.tipo || "";
                     let nombre = row.nombre || "";
 
                     sumaVentas += vta;
@@ -400,10 +405,10 @@
                     let efectivoMostrado = efec;
                     let badge = "";
 
-                    if (tipoRep === "MENSAJERO" && nombre.toUpperCase().includes("ROBINSON")) {
-                        efectivoMostrado = -efec;
+                    if (tipo === "MENSAJERO" && nombre.toUpperCase().includes("ROBINSON")) {
+                        efectivoMostrado = -efec; // Resta en el total neto para que el balance en efectivo dé $0
                         badge = '<span class="badge bg-success">Consignación Registrada</span>';
-                    } else if (tipoRep === "ISLERO") {
+                    } else if (tipo === "ISLERO") {
                         badge = (dif === 0 ? '<span class="badge bg-success">Cuadrado</span>' : (dif > 0 ? `<span class="badge bg-primary">+${dif.toLocaleString()}` : `<span class="badge bg-danger">${dif.toLocaleString()}`));
                     } else {
                         badge = '<span class="badge bg-success">Registrado</span>';
@@ -415,7 +420,7 @@
                         <tr>
                             <td class="fw-bold">${row.nombre}</td>
                             <td class="text-center">${row.fechaReporte}</td>
-                            <td class="text-center text-uppercase">${tipoRep}</td>
+                            <td class="text-center text-uppercase">${tipo}</td>
                             <td class="text-end">$ ${vta.toLocaleString('es-CO')}</td>
                             <td class="text-end ${efectivoMostrado < 0 ? 'text-danger' : 'text-success'} fw-bold">$ ${efectivoMostrado.toLocaleString('es-CO')}</td>
                             <td class="text-end">$ ${cred.toLocaleString('es-CO')}</td>
