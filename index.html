@@ -19,9 +19,6 @@
         .btn-modern-primary { background: linear-gradient(135deg, #0d6efd, #0b5ed7); color: white; border: none; border-radius: 8px; padding: 10px 20px; font-weight: 600; box-shadow: 0 4px 10px rgba(13,110,253,0.3); transition: all 0.3s; }
         .btn-modern-primary:hover { background: linear-gradient(135deg, #1b78ff, #0d6efd); color: #fff; transform: translateY(-2px); }
 
-        .btn-modern-warning { background: linear-gradient(135deg, #ffc107, #ff9800); color: #000; border: none; border-radius: 8px; padding: 10px 20px; font-weight: 600; box-shadow: 0 4px 10px rgba(255,193,7,0.3); transition: all 0.3s; }
-        .btn-modern-warning:hover { background: linear-gradient(135deg, #ffca2c, #f57c00); color: #000; transform: translateY(-2px); }
-
         .btn-modern-success { background: linear-gradient(135deg, #198754, #157347); color: white; border: none; border-radius: 8px; padding: 12px 24px; font-weight: 600; box-shadow: 0 4px 10px rgba(25,135,84,0.3); transition: all 0.3s; }
         .btn-modern-success:hover { background: linear-gradient(135deg, #20c997, #198754); color: #fff; transform: translateY(-2px); }
 
@@ -47,11 +44,11 @@
     <div class="row mb-4 no-print align-items-center g-3">
         <div class="col-md-6 d-flex align-items-center gap-3">
             <a href="consultas.html" class="btn btn-modern-dark text-center flex-grow-1">🔍 Ir al Módulo de Filtros, Consultas y Dashboard →</a>
-            <span class="badge bg-primary px-3 py-2 rounded-pill" id="badgeModo">V.1156</span>
+            <span class="badge bg-primary px-3 py-2 rounded-pill" id="badgeModo">V.1200</span>
         </div>
         <div class="col-md-6">
             <button class="btn btn-modern-outline w-100" type="button" data-bs-toggle="collapse" data-bs-target="#collapseCargar">
-                📂 Cargar Registro Pasado para Consultar o Modificar
+                📂 Cargar Registro Anterior para Editar / Consultar
             </button>
         </div>
     </div>
@@ -65,8 +62,8 @@
                     <input type="date" class="form-control" id="buscarFecha">
                 </div>
                 <div class="col-md-4">
-                    <label class="form-label fw-bold">Nombre del Responsable / Concepto</label>
-                    <input type="text" class="form-control" id="buscarNombre" placeholder="Ej. DANILO o VICENTE">
+                    <label class="form-label fw-bold">Nombre del Responsable</label>
+                    <input type="text" class="form-control" id="buscarNombre" placeholder="Ej. DANILO">
                 </div>
                 <div class="col-md-4">
                     <button type="button" class="btn btn-modern-primary w-100" onclick="cargarDatoAnterior()">📥 Cargar al Formulario</button>
@@ -79,14 +76,7 @@
         <h5 class="card-title text-secondary border-bottom pb-2 mb-3">1. Información General</h5>
         <div class="row g-3">
             <div class="col-md-3">
-                <label for="tipoMovimiento" class="form-label fw-bold">Tipo (Ingreso / Salida)</label>
-                <select class="form-select fw-bold text-primary" id="tipoMovimiento">
-                    <option value="INGRESO">🟢 INGRESO (Arqueo / Turno)</option>
-                    <option value="SALIDA">🔴 SALIDA (Pago Vicente / Combustible / Gasto)</option>
-                </select>
-            </div>
-            <div class="col-md-3">
-                <label for="tipoReporte" class="form-label fw-bold">Área / Rol</label>
+                <label for="tipoReporte" class="form-label fw-bold">Tipo de Reporte</label>
                 <select class="form-select" id="tipoReporte" onchange="cambiarTipoReporte()">
                     <option value="islero">Arqueo de Islero</option>
                     <option value="mensajero">Consolidado Mensajero (Consignación)</option>
@@ -95,14 +85,13 @@
                 </select>
             </div>
             <div class="col-md-3">
-                <label for="nombrePersona" class="form-label fw-bold" id="labelNombre">Nombre del Responsable</label>
+                <label for="nombrePersona" class="form-label fw-bold" id="labelNombre">Nombre del Islero</label>
                 <input class="form-control" list="listaNombres" id="nombrePersona" placeholder="Escribe o selecciona..." autocomplete="off">
                 <datalist id="listaNombres">
                     <option value="DANILO">
                     <option value="ROBINSON">
                     <option value="CARLOS">
                     <option value="STEFANY">
-                    <option value="VICENTE">
                 </datalist>
             </div>
             <div class="col-md-3">
@@ -165,7 +154,7 @@
         </div>
         <div class="col-md-4">
             <div class="card p-4 h-100">
-                <h6 class="text-secondary border-bottom pb-2 mb-3">5. Aditivos (Suman a Venta y Arqueo)</h6>
+                <h6 class="text-secondary border-bottom pb-2 mb-3">5. Aditivos</h6>
                 <div id="listaAditivos"></div>
                 <button type="button" class="btn btn-sm btn-outline-primary mt-2 no-print rounded-pill" onclick="agregarFila('listaAditivos', 'aditivo-val')">+ Agregar Aditivo</button>
                 <div class="mt-3 text-end fw-bold">Total Aditivos: <span id="lblTotalAditivos" class="text-success">$ 0</span></div>
@@ -176,26 +165,28 @@
     <div class="card p-4 mt-4 bg-white border-0">
         <h4 class="text-primary mb-3 text-center fw-bold" id="tituloResumen">Resumen de Cierre de Caja</h4>
         <div class="row summary-box mb-4">
-            <div class="col-md-6 mb-2"><strong>Total Venta del Día (Combustible + Aditivos):</strong> <span id="resTotalVenta" class="float-end">$ 0</span></div>
-            <div class="col-md-6 mb-2"><strong>Total Efectivo Billetes y Monedas:</strong> <span id="resVlrBilletes" class="float-end">$ 0</span></div>
+            <div class="col-md-6 mb-2"><strong>Total Venta del Día:</strong> <span id="resTotalVenta" class="float-end">$ 0</span></div>
+            <div class="col-md-6 mb-2"><strong>Total Valor Billetes:</strong> <span id="resVlrBilletes" class="float-end">$ 0</span></div>
+            <div class="col-md-6 mb-2"><strong>Total Valor Monedas:</strong> <span id="resVlrMonedas" class="float-end">$ 0</span></div>
             <div class="col-md-6 mb-2" id="filaResCreditos"><strong>Recibos / Vales / Créditos:</strong> <span id="resTotalCreditos" class="float-end">$ 0</span></div>
             <div class="col-md-6 mb-2" id="filaResDatafono"><strong>Ventas Datáfono:</strong> <span id="resTotalDatafono" class="float-end">$ 0</span></div>
             <div class="col-md-6 mb-2" id="filaResAditivos"><strong>Aditivos:</strong> <span id="resTotalAditivos" class="float-end">$ 0</span></div>
             <div class="col-md-12"><hr></div>
-            <div class="col-md-6 fs-5"><strong>Total Arqueo General:</strong> <span id="resTotalArqueo" class="float-end fw-bold text-primary">$ 0</span></div>
+            <div class="col-md-6 fs-5"><strong>Total Arqueo / Consignación:</strong> <span id="resTotalArqueo" class="float-end fw-bold text-primary">$ 0</span></div>
             <div class="col-md-6 fs-5" id="filaResDiferencia"><strong>Diferencia (Cuadre):</strong> <span id="resDiferencia" class="float-end fw-bold">$ 0</span></div>
         </div>
 
         <div class="text-center no-print d-flex justify-content-center gap-3">
             <button type="button" class="btn btn-modern-success" onclick="window.print()">🖨️ Imprimir / Guardar PDF</button>
-            <button type="button" class="btn btn-modern-primary" id="btnAccion" onclick="enviarAGoogleSheets()">☁️ Guardar como Nuevo Registro</button>
-            <button type="button" class="btn btn-modern-outline" onclick="nuevoArqueo()">🔄 Limpiar / Nuevo</button>
+            <button type="button" class="btn btn-modern-primary" id="btnAccion" onclick="enviarAGoogleSheets()">☁️ Enviar a Google Drive</button>
+            <button type="button" class="btn btn-modern-outline" onclick="nuevoArqueo()">🔄 Nuevo Arqueo</button>
         </div>
     </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
+    // URL de Web App ubicada exactamente en la parte superior del script
     const URL_WEB_APP = "https://script.google.com/macros/s/AKfycbwsyg1ERY8yvxa5R3VcYDkS0NQgIILqezUUD7EGvNvn66AJlwiiKHYzj6SGix0XJ343/exec";
     let modoEdicion = false;
 
@@ -310,9 +301,7 @@
                 }
 
                 const reg = data[0];
-                document.getElementById('tipoMovimiento').value = (reg.tipoMovimiento === "SALIDA" ? "SALIDA" : "INGRESO");
-                let reportType = reg.tipoReporte ? reg.tipoReporte.toLowerCase() : "islero";
-                document.getElementById('tipoReporte').value = reportType;
+                document.getElementById('tipoReporte').value = reg.tipo.toLowerCase();
                 cambiarTipoReporte();
                 document.getElementById('nombrePersona').value = reg.nombre;
                 document.getElementById('fecha').value = reg.fechaReporte;
@@ -340,13 +329,12 @@
                 rellenarListaDinamica('listaAditivos', 'aditivo-val', reg.aditivosLista);
 
                 modoEdicion = true;
-                document.getElementById('badgeModo').innerText = "V.2210 (Modificando)";
+                document.getElementById('badgeModo').innerText = "V.1930 (Modificando)";
                 document.getElementById('badgeModo').className = "badge bg-warning text-dark px-3 py-2 rounded-pill";
-                document.getElementById('btnAccion').innerText = "✏️ Actualizar Este Registro";
-                document.getElementById('btnAccion').className = "btn btn-modern-warning fw-bold text-dark";
+                document.getElementById('btnAccion').innerText = "✏️ Actualizar Registro";
 
                 calcularArqueo();
-                alert('¡Datos de ' + reg.nombre + ' cargados para edición!');
+                alert('¡Datos de ' + reg.nombre + ' cargados exitosamente!');
             })
             .catch(err => { alert('Error al cargar el registro: ' + err); });
     }
@@ -432,23 +420,22 @@
         }
 
         document.getElementById('resTotalVenta').innerText = `$ ${totalVenta.toLocaleString('es-CO')}`;
-        document.getElementById('resVlrBilletes').innerText = `$ ${totalDinero.toLocaleString('es-CO')}`;
+        document.getElementById('resVlrBilletes').innerText = `$ ${vlrBilletes.toLocaleString('es-CO')}`;
+        document.getElementById('resVlrMonedas').innerText = `$ ${vlrMonedas.toLocaleString('es-CO')}`;
         document.getElementById('resTotalArqueo').innerText = `$ ${totalArqueo.toLocaleString('es-CO')}`;
     }
 
     function nuevoArqueo() {
-        if (confirm("¿Deseas limpiar el formulario para un nuevo registro?")) {
+        if (confirm("¿Deseas limpiar el formulario?")) {
             document.getElementById('nombrePersona').value = '';
             document.getElementById('totalVenta').value = '';
-            document.getElementById('tipoMovimiento').value = 'INGRESO';
             document.getElementById('fecha').valueAsDate = new Date();
             document.querySelectorAll('#tablaBilletes input').forEach(i => i.value = '0');
             inicializarFilasDinamicas();
             modoEdicion = false;
-            document.getElementById('badgeModo').innerText = "V.2210";
+            document.getElementById('badgeModo').innerText = "V.1930";
             document.getElementById('badgeModo').className = "badge bg-primary px-3 py-2 rounded-pill";
-            document.getElementById('btnAccion').innerText = "☁️ Guardar como Nuevo Registro";
-            document.getElementById('btnAccion').className = "btn btn-modern-primary";
+            document.getElementById('btnAccion').innerText = "☁️ Enviar a Google Drive";
             calcularArqueo();
         }
     }
@@ -457,7 +444,6 @@
         const nombre = document.getElementById('nombrePersona').value.trim();
         if (!nombre) { alert('Por favor ingrese o seleccione el nombre.'); return; }
         
-        const tipoMovimiento = document.getElementById('tipoMovimiento').value;
         const tipoReporte = document.getElementById('tipoReporte').value;
         let cantidades = {};
         document.querySelectorAll('#tablaBilletes input').forEach(i => cantidades[i.dataset.key] = parseInt(i.value) || 0);
@@ -468,9 +454,7 @@
         document.querySelectorAll('.aditivo-val').forEach(i => { if(parseCurrency(i.value)>0) aditivosArr.push(parseCurrency(i.value)); });
 
         const datos = {
-            accion: modoEdicion ? "actualizar" : "crear",
-            tipoMovimiento: tipoMovimiento,
-            tipoReporte: tipoReporte.toUpperCase(),
+            tipo: tipoReporte,
             nombre: nombre.toUpperCase(),
             fecha: document.getElementById('fecha').value,
             totalVenta: parseCurrency(document.getElementById('totalVenta').value),
@@ -490,7 +474,7 @@
 
         const btn = event.target;
         let originalText = btn.innerText;
-        btn.innerText = modoEdicion ? "Actualizando registro..." : "Guardando nuevo...";
+        btn.innerText = modoEdicion ? "Actualizando..." : "Enviando...";
         btn.disabled = true;
 
         fetch(URL_WEB_APP, {
@@ -499,7 +483,7 @@
             headers: { 'Content-Type': 'text/plain;charset=utf-8' },
             body: JSON.stringify(datos)
         }).then(() => {
-            alert(modoEdicion ? '¡Registro actualizado exitosamente!' : '¡Nuevo registro guardado exitosamente!');
+            alert(modoEdicion ? '¡Registro actualizado exitosamente!' : '¡Reporte enviado exitosamente!');
             btn.innerText = originalText;
             btn.disabled = false;
             nuevoArqueo();
